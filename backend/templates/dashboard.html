@@ -30,7 +30,7 @@
         <!-- Sidebar Navigation -->
         <aside class="app-sidebar">
             <div class="sidebar-header">
-                <a href="/erp/dashboard/"
+                <a href="/"
                     class="d-flex align-items-center gap-2 fw-bold text-white text-decoration-none">
                     <i class="bi bi-rocket-takeoff-fill text-primary"></i> <span>BlueNova ERP</span>
                 </a>
@@ -56,6 +56,10 @@
                 <li class="sidebar-item">
                     <a href="/erp/messages/" class="sidebar-link"><i class="bi bi-chat-left-text-fill"></i>
                         <span>Messages</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/reports/attendance/" class="sidebar-link"><i class="bi bi-calendar-check-fill"></i>
+                        <span>Attendance Report</span></a>
                 </li>
                 <li class="sidebar-item">
                     <a href="/erp/history/" class="sidebar-link"><i class="bi bi-clock-history"></i>
@@ -155,6 +159,42 @@
                             </div>
                             <div class="fs-1 text-accent"><i class="bi bi-bell"></i></div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Attendance Card -->
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <a href="/erp/reports/attendance/" class="text-decoration-none">
+                            <div class="glass-panel glass-panel-hover p-4 d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-4">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:56px;height:56px;background:{% if today_attendance %}{% if today_attendance.status == 'present' %}var(--success-bg){% elif today_attendance.status == 'absent' %}var(--danger-bg){% elif today_attendance.status == 'late' %}var(--warning-bg){% else %}var(--info-bg){% endif %}{% else %}var(--warning-bg){% endif %};">
+                                        <i class="bi {% if today_attendance %}{% if today_attendance.status == 'present' %}bi-check-circle-fill{% elif today_attendance.status == 'absent' %}bi-x-circle-fill{% elif today_attendance.status == 'late' %}bi-clock-fill{% else %}bi-calendar-check-fill{% endif %}{% else %}bi-hourglass-split{% endif %} fs-4" style="color:{% if today_attendance %}{% if today_attendance.status == 'present' %}var(--success){% elif today_attendance.status == 'absent' %}var(--danger){% elif today_attendance.status == 'late' %}var(--warning){% else %}var(--info){% endif %}{% else %}var(--warning){% endif %};"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-secondary small">Today's Attendance</div>
+                                        <h4 class="text-white mb-0">
+                                            {% if today_attendance %}{{ today_attendance.status|title }}{% else %}Not Marked Yet{% endif %}
+                                        </h4>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-4">
+                                    <div class="text-center">
+                                        <div class="text-secondary small">Overall</div>
+                                        <h4 class="gradient-text mb-0">{{ attendance_pct }}%</h4>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-secondary small">Present</div>
+                                        <h4 class="text-white mb-0">{{ present_count }}</h4>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-secondary small">Absent</div>
+                                        <h4 class="text-white mb-0">{{ absent_count }}</h4>
+                                    </div>
+                                    <i class="bi bi-arrow-right text-secondary fs-5 d-none d-md-block"></i>
+                                </div>
+                            </div>
+                        </a>
                     </div>
                 </div>
 

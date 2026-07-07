@@ -209,4 +209,75 @@ class ERPTestCase(TestCase):
         self.assertEqual(login_success.status_code, 200)
         self.assertTrue(login_success.json()['success'])
 
+    def test_attendance_admin_only_access(self):
+        # Intern login
+        self.client.login(username='intern_test', password='testpassword')
+        response = self.client.get(reverse('attendance_dashboard'))
+        self.assertEqual(response.status_code, 302)  # redirects (denied)
+
+        # Admin login
+        self.client.login(username='admin_test', password='testpassword')
+        response = self.client.get(reverse('attendance_dashboard'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_attendance_marking_and_duplicate_prevention(self):
+        self.client.login(username='admin_test', password='testpassword')
+        
+        # Mark attendance via POST
+        post_data = {
+            'date': '2026-07-10',
+            'track': 'Software Engineering',
+            f'status_{self.intern.id}': 'present',
+            f'remarks_{self.intern.id}': 'Excellent work today'
+        }
+        response = self.client.post(reverse('attendance_mark'), post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['success'])
+
+        # Verify record exists in DB
+        from core.models import Attendance
+        att = Attendance.objects.get(student=self.intern, date='2026-07-10')
+        self.assertEqual(att.status, 'present')
+        self.assertEqual(att.remarks, 'Excellent work today')
+
+        # Try marking again for same student and date (duplicate prevention / editing)
+        post_data_edit = {
+            'date': '2026-07-10',
+            'track': 'Software Engineering',
+            f'status_{self.intern.id}': 'late',
+            f'remarks_{self.intern.id}': 'Late by 10 minutes'
+        }
+        response = self.client.post(reverse('attendance_mark'), post_data_edit, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['success'])
+
+        # Verify updated record and no duplication
+        att_updated = Attendance.objects.filter(student=self.intern, date='2026-07-10')
+        self.assertEqual(att_updated.count(), 1)
+        self.assertEqual(att_updated.first().status, 'late')
+        self.assertEqual(att_updated.first().remarks, 'Late by 10 minutes')
+
+    def test_user_reports_only_shows_own_attendance(self):
+        # Create attendance records for intern
+        from core.models import Attendance
+        Attendance.objects.create(
+            student=self.intern,
+            date='2026-06-10',
+            status='present',
+            internship_track='Software Engineering',
+            marked_by=self.admin
+        )
+        
+        # Log in as intern
+        self.client.login(username='intern_test', password='testpassword')
+        response = self.client.get(reverse('attendance_report'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'My Attendance Report')
+        self.assertContains(response, 'Present')
+
+        # Admin report check (admin redirect to admin attendance dashboard)
+        self.client.login(username='admin_test', password='testpassword')
+        response = self.client.get(reverse('attendance_report'))
+        self.assertEqual(response.status_code, 302)  # Redirects to admin attendance dashboard
+
 

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ profile.full_name }} - Attendance Details - BlueNova ERP</title>
+    <meta name="description" content="Complete attendance history for {{ profile.full_name }}.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    {% if request.user.is_authenticated %}
+    <script>
+        localStorage.setItem("erp_users", '{{ json_users|escapejs }}');
+        localStorage.setItem("erp_files", '{{ json_files|escapejs }}');
+        localStorage.setItem("erp_notifications", '{{ json_notifications|escapejs }}');
+        localStorage.setItem("erp_messages", '{{ json_messages|escapejs }}');
+        localStorage.setItem("erp_logs", '{{ json_logs|escapejs }}');
+        localStorage.setItem("erp_history", '{{ json_history|escapejs }}');
+        localStorage.setItem("erp_session", '{{ session_token }}');
+    </script>
+    {% endif %}
+
+    <div class="app-wrapper">
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <a href="/" class="d-flex align-items-center gap-2 fw-bold text-white text-decoration-none">
+                    <i class="bi bi-rocket-takeoff-fill text-primary"></i> <span>BlueNova ERP</span>
+                </a>
+                <button class="sidebar-toggler sidebar-toggle-btn d-lg-none"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="/erp/admin-dashboard/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Control Center</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/user-management/" class="sidebar-link"><i class="bi bi-people-fill"></i> <span>Candidate Management</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/user-management/?filter=approved" class="sidebar-link"><i class="bi bi-check-circle-fill text-success"></i> <span>Approved Candidates</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/user-management/?filter=rejected" class="sidebar-link"><i class="bi bi-x-circle-fill text-danger"></i> <span>Rejected Candidates</span></a>
+                </li>
+                <li class="sidebar-item active">
+                    <a href="/erp/attendance/dashboard/" class="sidebar-link"><i class="bi bi-calendar-check-fill"></i> <span>Attendance</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/messages/" class="sidebar-link"><i class="bi bi-chat-left-text-fill"></i> <span>Messages</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/notifications/" class="sidebar-link"><i class="bi bi-bell-fill"></i> <span>Notifications <span class="badge bg-danger notif-badge ms-1" style="display:none;">0</span></span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/reports/" class="sidebar-link"><i class="bi bi-file-earmark-bar-graph-fill"></i> <span>Reports</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/analytics/" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> <span>Analytics</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/activity-logs/" class="sidebar-link"><i class="bi bi-journal-text"></i> <span>System Logs</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/data-management/" class="sidebar-link"><i class="bi bi-hdd-network-fill"></i> <span>Data Control</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'settings' %}" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a>
+                </li>
+                <li class="sidebar-item mt-4">
+                    <a href="/auth/logout/" class="sidebar-link text-danger"><i class="bi bi-box-arrow-right"></i> <span>Sign Out</span></a>
+                </li>
+            </ul>
+        </aside>
+
+        <main class="app-content">
+            <header class="app-navbar">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="sidebar-toggler sidebar-toggle-btn d-lg-block text-white" aria-label="Toggle Sidebar"><i class="bi bi-list"></i></button>
+                    <h6 class="mb-0 text-white d-none d-md-block"><i class="bi bi-person-badge me-2"></i>Student Attendance Details</h6>
+                </div>
+                <div class="d-flex align-items-center gap-4">
+                    <button class="theme-switch theme-toggle-btn" aria-label="Toggle Theme"></button>
+                </div>
+            </header>
+
+            <div class="app-body">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                    <div>
+                        <h2 class="text-white mb-1">{{ profile.full_name }}</h2>
+                        <p class="text-secondary small mb-0">{{ target_user.email }} · {{ profile.track }}</p>
+                    </div>
+                    <a href="/erp/attendance/list/" class="btn btn-secondary-premium btn-sm"><i class="bi bi-arrow-left me-1"></i> Back to List</a>
+                </div>
+
+                <!-- Stats + Progress -->
+                <div class="row g-3 mb-4">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="glass-panel p-4 text-center h-100">
+                            <div class="attendance-progress-ring mx-auto mb-3">
+                                <svg width="120" height="120">
+                                    <circle class="progress-track" cx="60" cy="60" r="50"></circle>
+                                    <circle class="progress-fill" cx="60" cy="60" r="50"
+                                        stroke-dasharray="314.16"
+                                        stroke-dashoffset="314.16"
+                                        id="progress-circle"></circle>
+                                </svg>
+                                <span class="progress-text">{{ attendance_pct }}%</span>
+                            </div>
+                            <div class="text-secondary small">Overall Attendance</div>
+                            <div class="text-white fw-semibold">{{ total }} Total Records</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-9 col-md-6">
+                        <div class="row g-3 h-100">
+                            <div class="col-6 col-md-3">
+                                <div class="glass-panel metric-card att-stat-present h-100">
+                                    <div class="text-secondary small mb-1">Present</div>
+                                    <h3 class="fw-bold mb-0" style="color: var(--success);">{{ present_count }}</h3>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="glass-panel metric-card att-stat-absent h-100">
+                                    <div class="text-secondary small mb-1">Absent</div>
+                                    <h3 class="fw-bold mb-0" style="color: var(--danger);">{{ absent_count }}</h3>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="glass-panel metric-card att-stat-late h-100">
+                                    <div class="text-secondary small mb-1">Late</div>
+                                    <h3 class="fw-bold mb-0" style="color: var(--warning);">{{ late_count }}</h3>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="glass-panel metric-card att-stat-leave h-100">
+                                    <div class="text-secondary small mb-1">Leave</div>
+                                    <h3 class="fw-bold mb-0" style="color: var(--info);">{{ leave_count }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <!-- Calendar -->
+                    <div class="col-lg-5">
+                        <div class="glass-panel p-4 h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="text-white mb-0">{{ cal_month_name }} {{ cal_year }}</h5>
+                                <div class="d-flex gap-1">
+                                    {% if cal_month > 1 %}
+                                    <a href="?month={{ cal_month|add:"-1" }}&year={{ cal_year }}" class="btn btn-secondary-premium btn-sm py-0 px-2"><i class="bi bi-chevron-left"></i></a>
+                                    {% endif %}
+                                    {% if cal_month < 12 %}
+                                    <a href="?month={{ cal_month|add:"1" }}&year={{ cal_year }}" class="btn btn-secondary-premium btn-sm py-0 px-2"><i class="bi bi-chevron-right"></i></a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="attendance-calendar" id="att-calendar">
+                                <div class="cal-header">Mon</div>
+                                <div class="cal-header">Tue</div>
+                                <div class="cal-header">Wed</div>
+                                <div class="cal-header">Thu</div>
+                                <div class="cal-header">Fri</div>
+                                <div class="cal-header">Sat</div>
+                                <div class="cal-header">Sun</div>
+                            </div>
+                            <div class="cal-legend">
+                                <div class="cal-legend-item"><div class="cal-legend-dot present"></div> Present</div>
+                                <div class="cal-legend-item"><div class="cal-legend-dot absent"></div> Absent</div>
+                                <div class="cal-legend-item"><div class="cal-legend-dot late"></div> Late</div>
+                                <div class="cal-legend-item"><div class="cal-legend-dot leave"></div> Leave</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts -->
+                    <div class="col-lg-7">
+                        <div class="row g-4 h-100">
+                            <div class="col-12">
+                                <div class="glass-panel p-4">
+                                    <h5 class="text-white mb-3">Status Distribution</h5>
+                                    <div style="height: 180px; position: relative;">
+                                        <canvas id="detailPieChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="glass-panel p-4">
+                                    <h5 class="text-white mb-3">Monthly Trend</h5>
+                                    <div style="height: 180px; position: relative;">
+                                        <canvas id="detailLineChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Records Table -->
+                <div class="glass-panel p-4">
+                    <h5 class="text-white mb-3">Recent Attendance Records</h5>
+                    <div class="table-responsive">
+                        <table class="custom-table text-white mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Track</th>
+                                    <th>Remarks</th>
+                                    <th>Marked By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in recent_records %}
+                                <tr>
+                                    <td>{{ r.date|date:"M d, Y" }}</td>
+                                    <td><span class="badge-status status-{{ r.status }}">{{ r.status|title }}</span></td>
+                                    <td class="text-secondary">{{ r.internship_track }}</td>
+                                    <td class="text-secondary">{{ r.remarks|default:"-" }}</td>
+                                    <td class="text-secondary">{{ r.marked_by.username|default:"N/A" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5" class="text-center text-secondary py-4">No attendance records found.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/mockData.js"></script>
+    <script src="/static/js/app.js?v={% now "U" %}"></script>
+    <script>
+        // Calendar Rendering
+        const monthDays = {{ month_days|safe }};
+        const attMap = {{ month_att_map|safe }};
+        const today = new Date();
+        const calYear = {{ cal_year }};
+        const calMonth = {{ cal_month }};
+        const calGrid = document.getElementById('att-calendar');
+
+        monthDays.forEach(week => {
+            week.forEach(day => {
+                const cell = document.createElement('div');
+                cell.className = 'cal-day';
+                if (day === 0) {
+                    cell.classList.add('empty');
+                } else {
+                    cell.textContent = day;
+                    const status = attMap[day];
+                    if (status) cell.classList.add('cal-' + status);
+                    if (day === today.getDate() && calMonth === (today.getMonth() + 1) && calYear === today.getFullYear()) {
+                        cell.classList.add('today');
+                    }
+                }
+                calGrid.appendChild(cell);
+            });
+        });
+
+        // Progress ring animation
+        const circle = document.getElementById('progress-circle');
+        if (circle) {
+            const pct = {{ attendance_pct }};
+            const circumference = 314.16;
+            const offset = circumference - (pct / 100) * circumference;
+            circle.style.strokeDashoffset = circumference;
+            setTimeout(() => { circle.style.strokeDashoffset = offset; }, 100);
+        }
+
+        // Pie chart
+        new Chart(document.getElementById('detailPieChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Present', 'Absent', 'Late', 'Leave'],
+                datasets: [{ data: [{{ present_count }}, {{ absent_count }}, {{ late_count }}, {{ leave_count }}], backgroundColor: ['#00e676','#f43f5e','#f59e0b','#0ea5e9'], borderWidth: 0, hoverOffset: 6 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'right', labels: { color: '#94a3b8', padding: 12, usePointStyle: true, pointStyleWidth: 8, font: { size: 11 } } } } }
+        });
+
+        // Line chart
+        new Chart(document.getElementById('detailLineChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: {{ monthly_labels|safe }},
+                datasets: [{
+                    label: 'Attendance %',
+                    data: {{ monthly_pcts|safe }},
+                    borderColor: '#00c853',
+                    backgroundColor: 'rgba(0, 200, 83, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#00c853',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+                    y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', font: { size: 10 } }, min: 0, max: 100, callback: v => v + '%' }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

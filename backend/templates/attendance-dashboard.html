@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Dashboard - BlueNova ERP</title>
+    <meta name="description" content="Manage and monitor student attendance across all internship tracks.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    {% if request.user.is_authenticated %}
+    <script>
+        localStorage.setItem("erp_users", '{{ json_users|escapejs }}');
+        localStorage.setItem("erp_files", '{{ json_files|escapejs }}');
+        localStorage.setItem("erp_notifications", '{{ json_notifications|escapejs }}');
+        localStorage.setItem("erp_messages", '{{ json_messages|escapejs }}');
+        localStorage.setItem("erp_logs", '{{ json_logs|escapejs }}');
+        localStorage.setItem("erp_history", '{{ json_history|escapejs }}');
+        localStorage.setItem("erp_session", '{{ session_token }}');
+    </script>
+    {% endif %}
+
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <a href="/" class="d-flex align-items-center gap-2 fw-bold text-white text-decoration-none">
+                    <i class="bi bi-rocket-takeoff-fill text-primary"></i> <span>BlueNova ERP</span>
+                </a>
+                <button class="sidebar-toggler sidebar-toggle-btn d-lg-none"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="/erp/admin-dashboard/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Control Center</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/user-management/" class="sidebar-link"><i class="bi bi-people-fill"></i> <span>Candidate Management</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/user-management/?filter=approved" class="sidebar-link"><i class="bi bi-check-circle-fill text-success"></i> <span>Approved Candidates</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/user-management/?filter=rejected" class="sidebar-link"><i class="bi bi-x-circle-fill text-danger"></i> <span>Rejected Candidates</span></a>
+                </li>
+                <li class="sidebar-item active">
+                    <a href="/erp/attendance/dashboard/" class="sidebar-link"><i class="bi bi-calendar-check-fill"></i> <span>Attendance</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/messages/" class="sidebar-link"><i class="bi bi-chat-left-text-fill"></i> <span>Messages</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/notifications/" class="sidebar-link"><i class="bi bi-bell-fill"></i> <span>Notifications <span class="badge bg-danger notif-badge ms-1" style="display:none;">0</span></span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/reports/" class="sidebar-link"><i class="bi bi-file-earmark-bar-graph-fill"></i> <span>Reports</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/analytics/" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> <span>Analytics</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/activity-logs/" class="sidebar-link"><i class="bi bi-journal-text"></i> <span>System Logs</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/data-management/" class="sidebar-link"><i class="bi bi-hdd-network-fill"></i> <span>Data Control</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'settings' %}" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a>
+                </li>
+                <li class="sidebar-item mt-4">
+                    <a href="/auth/logout/" class="sidebar-link text-danger"><i class="bi bi-box-arrow-right"></i> <span>Sign Out</span></a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Panel -->
+        <main class="app-content">
+            <header class="app-navbar">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="sidebar-toggler sidebar-toggle-btn d-lg-block text-white" aria-label="Toggle Sidebar"><i class="bi bi-list"></i></button>
+                    <h6 class="mb-0 text-white d-none d-md-block"><i class="bi bi-calendar-check me-2"></i>Attendance Management</h6>
+                </div>
+                <div class="d-flex align-items-center gap-4">
+                    <button class="theme-switch theme-toggle-btn" aria-label="Toggle Theme"></button>
+                    <a href="/erp/profile/" class="d-flex align-items-center gap-2 text-decoration-none">
+                        <img src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=80&q=80" class="rounded-circle" width="36" height="36" alt="">
+                    </a>
+                </div>
+            </header>
+
+            <div class="app-body">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                    <div>
+                        <h2 class="text-white mb-1">Attendance Dashboard</h2>
+                        <p class="text-secondary small mb-0">Today's attendance overview — {{ today_date|date:"F d, Y" }}</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="/erp/attendance/mark/" class="btn btn-premium btn-sm"><i class="bi bi-pencil-square me-1"></i> Mark Attendance</a>
+                        <a href="/erp/attendance/list/" class="btn btn-secondary-premium btn-sm"><i class="bi bi-list-check me-1"></i> View List</a>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="row g-3 mb-4">
+                    <div class="col-xl-2 col-md-4 col-6">
+                        <div class="glass-panel metric-card att-stat-total">
+                            <div class="text-secondary small mb-1">Total Students</div>
+                            <h2 class="text-white fw-bold mb-0">{{ total_students }}</h2>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 col-md-4 col-6">
+                        <div class="glass-panel metric-card att-stat-present">
+                            <div class="text-secondary small mb-1">Present Today</div>
+                            <h2 class="fw-bold mb-0" style="color: var(--success);">{{ present_today }}</h2>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 col-md-4 col-6">
+                        <div class="glass-panel metric-card att-stat-absent">
+                            <div class="text-secondary small mb-1">Absent Today</div>
+                            <h2 class="fw-bold mb-0" style="color: var(--danger);">{{ absent_today }}</h2>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 col-md-4 col-6">
+                        <div class="glass-panel metric-card att-stat-late">
+                            <div class="text-secondary small mb-1">Late Today</div>
+                            <h2 class="fw-bold mb-0" style="color: var(--warning);">{{ late_today }}</h2>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 col-md-4 col-6">
+                        <div class="glass-panel metric-card att-stat-leave">
+                            <div class="text-secondary small mb-1">On Leave</div>
+                            <h2 class="fw-bold mb-0" style="color: var(--info);">{{ leave_today }}</h2>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 col-md-4 col-6">
+                        <div class="glass-panel metric-card att-stat-pct">
+                            <div class="text-secondary small mb-1">Attendance %</div>
+                            <h2 class="fw-bold mb-0" style="color: #a855f7;">{{ attendance_pct }}%</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="row g-4 mb-4">
+                    <div class="col-lg-5">
+                        <div class="glass-panel p-4 h-100">
+                            <h4 class="text-white mb-3">Today's Status Distribution</h4>
+                            <div style="height: 260px; position: relative;">
+                                <canvas id="attendancePieChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="glass-panel p-4 h-100">
+                            <h4 class="text-white mb-3">Weekly Attendance Trend</h4>
+                            <div style="height: 260px; position: relative;">
+                                <canvas id="attendanceWeeklyChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Track-wise Breakdown -->
+                <div class="glass-panel p-4">
+                    <h4 class="text-white mb-3">Track-wise Attendance (Today)</h4>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="glass-panel p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-white fw-semibold">Software Engineering</span>
+                                    <span class="badge-status status-approved">{{ se_present }}/{{ se_total }}</span>
+                                </div>
+                                <div class="progress" style="height:6px; background: var(--card-border); border-radius:3px;">
+                                    <div class="progress-bar" style="width: {% if se_total > 0 %}{% widthratio se_present se_total 100 %}{% else %}0{% endif %}%; background: var(--success); border-radius:3px;" role="progressbar"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="glass-panel p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-white fw-semibold">UI/UX Design</span>
+                                    <span class="badge-status status-approved">{{ uiux_present }}/{{ uiux_total }}</span>
+                                </div>
+                                <div class="progress" style="height:6px; background: var(--card-border); border-radius:3px;">
+                                    <div class="progress-bar" style="width: {% if uiux_total > 0 %}{% widthratio uiux_present uiux_total 100 %}{% else %}0{% endif %}%; background: var(--success); border-radius:3px;" role="progressbar"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="glass-panel p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-white fw-semibold">Data Analytics</span>
+                                    <span class="badge-status status-approved">{{ da_present }}/{{ da_total }}</span>
+                                </div>
+                                <div class="progress" style="height:6px; background: var(--card-border); border-radius:3px;">
+                                    <div class="progress-bar" style="width: {% if da_total > 0 %}{% widthratio da_present da_total 100 %}{% else %}0{% endif %}%; background: var(--success); border-radius:3px;" role="progressbar"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/mockData.js"></script>
+    <script src="/static/js/app.js?v={% now "U" %}"></script>
+    <script>
+        // Pie Chart — Today's Status
+        const pieCtx = document.getElementById('attendancePieChart').getContext('2d');
+        new Chart(pieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Present', 'Absent', 'Late', 'Leave'],
+                datasets: [{
+                    data: [{{ present_today }}, {{ absent_today }}, {{ late_today }}, {{ leave_today }}],
+                    backgroundColor: ['#00e676', '#f43f5e', '#f59e0b', '#0ea5e9'],
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 16, usePointStyle: true, pointStyleWidth: 10 } }
+                },
+                cutout: '65%'
+            }
+        });
+
+        // Weekly Trend Bar Chart
+        const weeklyCtx = document.getElementById('attendanceWeeklyChart').getContext('2d');
+        new Chart(weeklyCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ weekly_labels|safe }},
+                datasets: [
+                    {
+                        label: 'Present / Late',
+                        data: {{ weekly_present|safe }},
+                        backgroundColor: 'rgba(0, 230, 118, 0.6)',
+                        borderRadius: 6,
+                        borderSkipped: false
+                    },
+                    {
+                        label: 'Absent / Leave',
+                        data: {{ weekly_absent|safe }},
+                        backgroundColor: 'rgba(244, 63, 94, 0.6)',
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 16, usePointStyle: true, pointStyleWidth: 10 } }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b' }, beginAtZero: true }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

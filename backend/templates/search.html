@@ -27,7 +27,7 @@
         <!-- Sidebar Navigation -->
         <aside class="app-sidebar" id="search-sidebar-aside">
             <div class="sidebar-header">
-                <a href="/erp/dashboard/" class="d-flex align-items-center gap-2 fw-bold text-white text-decoration-none">
+                <a href="/" class="d-flex align-items-center gap-2 fw-bold text-white text-decoration-none">
                     <i class="bi bi-rocket-takeoff-fill text-primary"></i> <span id="sidebar-logo-text">BlueNova ERP</span>
                 </a>
                 <button class="sidebar-toggler sidebar-toggle-btn d-lg-none"><i class="bi bi-x-lg"></i></button>
@@ -83,10 +83,13 @@
             const homeLink = document.querySelector("#search-sidebar-aside a");
             
             if (u.role === "admin") {
-                homeLink.href = "/erp/admin-dashboard/";
+                homeLink.href = "/";
                 menu.innerHTML = `
                     <li class="sidebar-item"><a href="/erp/admin-dashboard/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Control Center</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/user-management/" class="sidebar-link"><i class="bi bi-people-fill"></i> <span>User Accounts</span></a></li>
+                    <li class="sidebar-item"><a href="/erp/user-management/" class="sidebar-link"><i class="bi bi-people-fill"></i> <span>Candidate Management</span></a></li>
+                    <li class="sidebar-item"><a href="/erp/user-management/?filter=approved" class="sidebar-link"><i class="bi bi-check-circle-fill text-success"></i> <span>Approved Candidates</span></a></li>
+                    <li class="sidebar-item"><a href="/erp/user-management/?filter=rejected" class="sidebar-link"><i class="bi bi-x-circle-fill text-danger"></i> <span>Rejected Candidates</span></a></li>
+    
                     <li class="sidebar-item"><a href="/erp/messages/" class="sidebar-link"><i class="bi bi-chat-left-text-fill"></i> <span>Messages</span></a></li>
                     <li class="sidebar-item"><a href="/erp/data-management/" class="sidebar-link"><i class="bi bi-hdd-network-fill"></i> <span>Data Control</span></a></li>
                     <li class="sidebar-item"><a href="/erp/activity-logs/" class="sidebar-link"><i class="bi bi-journal-text"></i> <span>Activity Logs</span></a></li>
@@ -96,7 +99,7 @@
                     <li class="sidebar-item mt-4"><a href="/auth/logout/" class="sidebar-link text-danger"><i class="bi bi-box-arrow-right"></i> <span>Sign Out</span></a></li>
                 `;
             } else {
-                homeLink.href = "/erp/dashboard/";
+                homeLink.href = "/";
                 menu.innerHTML = `
                     <li class="sidebar-item"><a href="/erp/dashboard/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Dashboard</span></a></li>
                     <li class="sidebar-item"><a href="/erp/profile/" class="sidebar-link"><i class="bi bi-person-fill"></i> <span>My Profile</span></a></li>

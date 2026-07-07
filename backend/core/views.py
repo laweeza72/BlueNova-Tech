@@ -2,8 +2,12 @@ import csv
 import io
 import os
 import json
+import calendar
+from datetime import date, datetime, timedelta
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db.models import Count, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_protect
@@ -11,7 +15,7 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.core.serializers.json import DjangoJSONEncoder
 from authentication.views import log_action
-from .models import Profile, UploadedFile, Notification, Message, ActivityLog, Feedback, Setting, History, Report, InternshipApplication
+from .models import Profile, UploadedFile, Notification, Message, ActivityLog, Feedback, Setting, History, Report, InternshipApplication, Attendance
 from .decorators import admin_required, intern_required
 
 User = get_user_model()
@@ -102,7 +106,8 @@ def get_erp_context(request):
         msg_list.append({
             'id': m.id,
             'sender_id': m.sender.id,
-            'receiver_id': m.receiver.id,
+            'receiver_id': m.receiver.id if m.receiver else None,
+            'group_name': m.group_name or "",
             'subject': m.subject,
             'body': m.body,
             'is_read': m.is_read,
@@ -155,11 +160,34 @@ def dashboard(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     logs = ActivityLog.objects.filter(user=request.user).order_by('-timestamp')[:5]
     
+    # Attendance data for dashboard card (excluding July 2026)
+    today = date.today()
+    records_all = Attendance.objects.filter(student=request.user).exclude(date__year=2026, date__month=7)
+    
+    if today.year == 2026 and today.month == 7:
+        today_attendance = None
+    else:
+        today_attendance = records_all.filter(date=today).first()
+        
+    total_records = records_all.count()
+    present_count = records_all.filter(status='present').count()
+    absent_count = records_all.filter(status='absent').count()
+    late_count = records_all.filter(status='late').count()
+    leave_count = records_all.filter(status='leave').count()
+    attendance_pct = round((present_count + late_count) / total_records * 100, 1) if total_records > 0 else 0
+    
     context = {
         'profile': profile,
         'files_count': files.count(),
         'notif_count': notifications.filter(is_read=False).count(),
         'recent_logs': logs,
+        'today_attendance': today_attendance,
+        'attendance_pct': attendance_pct,
+        'present_count': present_count,
+        'absent_count': absent_count,
+        'late_count': late_count,
+        'leave_count': leave_count,
+        'total_attendance_records': total_records,
     }
     context.update(get_erp_context(request))
     return render(request, 'dashboard.html', context)
@@ -179,6 +207,15 @@ def admin_dashboard(request):
     ui_count = users.filter(profile__track='UI/UX Design').count()
     da_count = users.filter(profile__track='Data Analytics').count()
     
+    # Attendance stats for today
+    today = date.today()
+    today_present = Attendance.objects.filter(date=today, status='present').count()
+    today_absent = Attendance.objects.filter(date=today, status='absent').count()
+    today_late = Attendance.objects.filter(date=today, status='late').count()
+    today_leave = Attendance.objects.filter(date=today, status='leave').count()
+    today_total_marked = today_present + today_absent + today_late + today_leave
+    attendance_pct = round((today_present + today_late) / today_total_marked * 100, 1) if today_total_marked > 0 else 0
+    
     context = {
         'total_interns': users.count(),
         'pending_count': pending_users.count(),
@@ -188,6 +225,12 @@ def admin_dashboard(request):
         'se_count': se_count,
         'ui_count': ui_count,
         'da_count': da_count,
+        'today_present': today_present,
+        'today_absent': today_absent,
+        'today_late': today_late,
+        'today_leave': today_leave,
+        'today_total_marked': today_total_marked,
+        'admin_attendance_pct': attendance_pct,
     }
     context.update(get_erp_context(request))
     return render(request, 'admin-dashboard.html', context)
@@ -391,6 +434,7 @@ def reset_database_view(request):
         Message.objects.all().delete()
         Feedback.objects.all().delete()
         History.objects.all().delete()
+        Attendance.objects.all().delete()
         User.objects.filter(role='user').delete()
         
         log_action(request.user, "System database successfully reset", request)
@@ -1723,4 +1767,640 @@ def system_state_api(request):
         'logs': json.loads(ctx['json_logs']),
         'history': json.loads(ctx['json_history']),
     })
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# ATTENDANCE MANAGEMENT MODULE
+# ═══════════════════════════════════════════════════════════════════════
+
+@login_required
+@admin_required
+def attendance_dashboard(request):
+    today = date.today()
+    total_students = User.objects.filter(role='user').count()
+
+    today_records = Attendance.objects.filter(date=today)
+    present_today = today_records.filter(status='present').count()
+    absent_today = today_records.filter(status='absent').count()
+    late_today = today_records.filter(status='late').count()
+    leave_today = today_records.filter(status='leave').count()
+    total_marked = present_today + absent_today + late_today + leave_today
+    attendance_pct = round((present_today + late_today) / total_marked * 100, 1) if total_marked > 0 else 0
+
+    # Track-wise attendance for today
+    se_present = today_records.filter(internship_track='Software Engineering', status__in=['present', 'late']).count()
+    se_total = today_records.filter(internship_track='Software Engineering').count()
+    uiux_present = today_records.filter(internship_track='UI/UX Design', status__in=['present', 'late']).count()
+    uiux_total = today_records.filter(internship_track='UI/UX Design').count()
+    da_present = today_records.filter(internship_track='Data Analytics', status__in=['present', 'late']).count()
+    da_total = today_records.filter(internship_track='Data Analytics').count()
+
+    # Weekly trend (last 7 days)
+    weekly_labels = []
+    weekly_present = []
+    weekly_absent = []
+    for i in range(6, -1, -1):
+        d = today - timedelta(days=i)
+        weekly_labels.append(d.strftime('%a %d'))
+        day_records = Attendance.objects.filter(date=d)
+        weekly_present.append(day_records.filter(status__in=['present', 'late']).count())
+        weekly_absent.append(day_records.filter(status__in=['absent', 'leave']).count())
+
+    context = {
+        'total_students': total_students,
+        'present_today': present_today,
+        'absent_today': absent_today,
+        'late_today': late_today,
+        'leave_today': leave_today,
+        'total_marked': total_marked,
+        'attendance_pct': attendance_pct,
+        'se_present': se_present,
+        'se_total': se_total,
+        'uiux_present': uiux_present,
+        'uiux_total': uiux_total,
+        'da_present': da_present,
+        'da_total': da_total,
+        'weekly_labels': json.dumps(weekly_labels),
+        'weekly_present': json.dumps(weekly_present),
+        'weekly_absent': json.dumps(weekly_absent),
+        'today_date': today,
+    }
+    context.update(get_erp_context(request))
+    return render(request, 'attendance-dashboard.html', context)
+
+
+@login_required
+@admin_required
+@csrf_protect
+def attendance_mark(request):
+    if request.method == 'POST':
+        selected_date_str = request.POST.get('date', '')
+        selected_track = request.POST.get('track', '')
+
+        if not selected_date_str or not selected_track:
+            return JsonResponse({'success': False, 'message': 'Date and track are required.'}, status=400)
+
+        try:
+            selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return JsonResponse({'success': False, 'message': 'Invalid date format.'}, status=400)
+
+        students = User.objects.filter(role='user', profile__track=selected_track).select_related('profile')
+        marked_count = 0
+        for student in students:
+            status_val = request.POST.get(f'status_{student.id}', '').strip()
+            remarks_val = request.POST.get(f'remarks_{student.id}', '').strip()
+            if not status_val:
+                continue
+
+            obj, created = Attendance.objects.update_or_create(
+                student=student,
+                date=selected_date,
+                defaults={
+                    'internship_track': selected_track,
+                    'status': status_val,
+                    'remarks': remarks_val,
+                    'marked_by': request.user,
+                }
+            )
+            marked_count += 1
+
+            # Notify the student
+            status_display = dict(Attendance.STATUS_CHOICES).get(status_val, status_val).title()
+            Notification.objects.create(
+                user=student,
+                title='Attendance Marked',
+                message=f'Your attendance for {selected_date.strftime("%B %d, %Y")} has been marked as {status_display}.',
+                level='info' if status_val == 'present' else ('warning' if status_val in ['late', 'leave'] else 'danger'),
+            )
+
+        action_word = "updated" if not Attendance.objects.none() else "marked"
+        log_action(request.user, f"Marked attendance for {marked_count} students ({selected_track}) on {selected_date_str}", request)
+        return JsonResponse({'success': True, 'message': f'Attendance saved for {marked_count} students.'})
+
+    # GET request — show the mark attendance form
+    selected_date_str = request.GET.get('date', date.today().strftime('%Y-%m-%d'))
+    selected_track = request.GET.get('track', 'Software Engineering')
+
+    try:
+        selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+    except ValueError:
+        selected_date = date.today()
+        selected_date_str = selected_date.strftime('%Y-%m-%d')
+
+    students = User.objects.filter(role='user', profile__track=selected_track).select_related('profile')
+
+    # Load existing attendance for this date (for edit mode)
+    existing_attendance = {}
+    for att in Attendance.objects.filter(date=selected_date, internship_track=selected_track):
+        existing_attendance[att.student_id] = {
+            'status': att.status,
+            'remarks': att.remarks,
+        }
+
+    students_data = []
+    for s in students:
+        att = existing_attendance.get(s.id, {})
+        students_data.append({
+            'id': s.id,
+            'full_name': s.profile.full_name if hasattr(s, 'profile') else s.username,
+            'email': s.email,
+            'track': selected_track,
+            'status': att.get('status', ''),
+            'remarks': att.get('remarks', ''),
+        })
+
+    has_existing = len(existing_attendance) > 0
+
+    context = {
+        'students': students_data,
+        'selected_date': selected_date_str,
+        'selected_track': selected_track,
+        'has_existing': has_existing,
+        'track_choices': ['Software Engineering', 'UI/UX Design', 'Data Analytics'],
+    }
+    context.update(get_erp_context(request))
+    return render(request, 'attendance-mark.html', context)
+
+
+@login_required
+@admin_required
+def attendance_list(request):
+    search_q = request.GET.get('q', '').strip()
+
+    # Get all active candidates
+    students = User.objects.filter(role='user').select_related('profile')
+
+    if search_q:
+        students = students.filter(
+            Q(profile__full_name__icontains=search_q) |
+            Q(email__icontains=search_q) |
+            Q(username__icontains=search_q)
+        )
+
+    tracks_data = {
+        'Software Engineering': [],
+        'UI/UX Design': [],
+        'Data Analytics': []
+    }
+
+    for student in students:
+        track = student.profile.track if hasattr(student, 'profile') and student.profile.track else 'Software Engineering'
+        if track not in tracks_data:
+            tracks_data[track] = []
+
+        records = Attendance.objects.filter(student=student)
+        total = records.count()
+        present = records.filter(status='present').count()
+        absent = records.filter(status='absent').count()
+        late = records.filter(status='late').count()
+        leave = records.filter(status='leave').count()
+        pct = round((present + late) / total * 100, 1) if total > 0 else 0
+
+        tracks_data[track].append({
+            'student': student,
+            'full_name': student.profile.full_name if hasattr(student, 'profile') else student.username,
+            'email': student.email,
+            'present': present,
+            'absent': absent,
+            'late': late,
+            'leave': leave,
+            'total': total,
+            'pct': pct
+        })
+
+    context = {
+        'tracks_data': tracks_data,
+        'search_q': search_q,
+    }
+    context.update(get_erp_context(request))
+    return render(request, 'attendance-list.html', context)
+
+
+@login_required
+@admin_required
+def attendance_details(request, user_id):
+    target_user = get_object_or_404(User, id=user_id, role='user')
+    profile = get_object_or_404(Profile, user=target_user)
+    records = Attendance.objects.filter(student=target_user).order_by('-date')
+
+    total = records.count()
+    present_count = records.filter(status='present').count()
+    absent_count = records.filter(status='absent').count()
+    late_count = records.filter(status='late').count()
+    leave_count = records.filter(status='leave').count()
+    attendance_pct = round((present_count + late_count) / total * 100, 1) if total > 0 else 0
+
+    # Monthly calendar data for current month
+    selected_month = request.GET.get('month', '')
+    selected_year = request.GET.get('year', '')
+    try:
+        cal_year = int(selected_year) if selected_year else date.today().year
+        cal_month = int(selected_month) if selected_month else date.today().month
+    except (ValueError, TypeError):
+        cal_year = date.today().year
+        cal_month = date.today().month
+
+    cal = calendar.Calendar(firstweekday=0)
+    month_days = cal.monthdayscalendar(cal_year, cal_month)
+
+    month_records = Attendance.objects.filter(
+        student=target_user,
+        date__year=cal_year,
+        date__month=cal_month
+    )
+    month_att_map = {}
+    for r in month_records:
+        month_att_map[r.date.day] = r.status
+
+    # Monthly trend (last 6 months)
+    monthly_labels = []
+    monthly_pcts = []
+    for i in range(5, -1, -1):
+        m_date = date.today().replace(day=1) - timedelta(days=i * 30)
+        m_records = records.filter(date__year=m_date.year, date__month=m_date.month)
+        m_total = m_records.count()
+        m_present = m_records.filter(status__in=['present', 'late']).count()
+        monthly_labels.append(m_date.strftime('%b %Y'))
+        monthly_pcts.append(round(m_present / m_total * 100, 1) if m_total > 0 else 0)
+
+    # Recent records for table
+    recent_records = records[:20]
+
+    context = {
+        'target_user': target_user,
+        'profile': profile,
+        'total': total,
+        'present_count': present_count,
+        'absent_count': absent_count,
+        'late_count': late_count,
+        'leave_count': leave_count,
+        'attendance_pct': attendance_pct,
+        'month_days': month_days,
+        'month_att_map': json.dumps(month_att_map),
+        'cal_year': cal_year,
+        'cal_month': cal_month,
+        'cal_month_name': calendar.month_name[cal_month],
+        'monthly_labels': json.dumps(monthly_labels),
+        'monthly_pcts': json.dumps(monthly_pcts),
+        'recent_records': recent_records,
+    }
+    context.update(get_erp_context(request))
+    return render(request, 'attendance-details.html', context)
+
+
+@login_required
+@admin_required
+def attendance_export_csv(request):
+    queryset = Attendance.objects.select_related('student', 'student__profile', 'marked_by').all()
+
+    filter_date = request.GET.get('date', '')
+    filter_track = request.GET.get('track', '')
+    filter_status = request.GET.get('status', '')
+
+    if filter_date:
+        try:
+            queryset = queryset.filter(date=datetime.strptime(filter_date, '%Y-%m-%d').date())
+        except ValueError:
+            pass
+    if filter_track:
+        queryset = queryset.filter(internship_track=filter_track)
+    if filter_status:
+        queryset = queryset.filter(status=filter_status)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="bluenova_attendance_report.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['ID', 'Student Name', 'Email', 'Track', 'Date', 'Status', 'Remarks', 'Marked By', 'Created At'])
+
+    for att in queryset:
+        student_name = att.student.profile.full_name if hasattr(att.student, 'profile') else att.student.username
+        marked_by_name = att.marked_by.username if att.marked_by else 'N/A'
+        writer.writerow([
+            att.id,
+            student_name,
+            att.student.email,
+            att.internship_track,
+            att.date.strftime('%Y-%m-%d'),
+            att.status.title(),
+            att.remarks,
+            marked_by_name,
+            att.created_at.strftime('%Y-%m-%d %H:%M'),
+        ])
+
+    log_action(request.user, "Exported attendance CSV report", request)
+    return response
+
+
+@login_required
+@admin_required
+def attendance_export_pdf(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="bluenova_attendance_report.pdf"'
+
+    pdf_buffer = io.BytesIO()
+    pdf_buffer.write(b"%PDF-1.4\n")
+    pdf_buffer.write(b"1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n")
+    pdf_buffer.write(b"2 0 obj\n<< /Type /Pages /Kids [ 3 0 R ] /Count 1 >>\nendobj\n")
+    pdf_buffer.write(b"3 0 obj\n<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R /MediaBox [0 0 612 792] >>\nendobj\n")
+    pdf_buffer.write(b"4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n")
+
+    today_str = date.today().strftime('%B %d, %Y')
+    total = Attendance.objects.count()
+    present = Attendance.objects.filter(status='present').count()
+    absent = Attendance.objects.filter(status='absent').count()
+
+    content_lines = [
+        f"BlueNova Technologies - Attendance Report",
+        f"Generated: {today_str}",
+        f"",
+        f"Total Records: {total}",
+        f"Present: {present}  |  Absent: {absent}",
+    ]
+
+    stream_content = "BT\n/F1 14 Tf\n50 740 Td\n"
+    for line in content_lines:
+        stream_content += f"({line}) Tj\n0 -22 Td\n"
+    stream_content += "ET\n"
+
+    stream_bytes = stream_content.encode('latin-1')
+    pdf_buffer.write(f"5 0 obj\n<< /Length {len(stream_bytes)} >>\nstream\n".encode())
+    pdf_buffer.write(stream_bytes)
+    pdf_buffer.write(b"endstream\nendobj\n")
+    pdf_buffer.write(b"xref\n0 6\n0000000000 65535 f\n0000000009 00000 n\n0000000062 00000 n\n0000000119 00000 n\n0000000270 00000 n\n0000000349 00000 n\n")
+    pdf_buffer.write(b"trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n")
+    pdf_buffer.write(str(len(pdf_buffer.getvalue()) + 20).encode())
+    pdf_buffer.write(b"\n%%EOF\n")
+
+    response.write(pdf_buffer.getvalue())
+    log_action(request.user, "Exported attendance PDF report", request)
+    return response
+
+
+@login_required
+@admin_required
+def attendance_analytics_api(request):
+    today = date.today()
+
+    # Daily trend (last 30 days)
+    daily_labels = []
+    daily_rates = []
+    for i in range(29, -1, -1):
+        d = today - timedelta(days=i)
+        day_total = Attendance.objects.filter(date=d).count()
+        day_present = Attendance.objects.filter(date=d, status__in=['present', 'late']).count()
+        daily_labels.append(d.strftime('%d %b'))
+        daily_rates.append(round(day_present / day_total * 100, 1) if day_total > 0 else 0)
+
+    # Monthly summary (last 6 months)
+    monthly_labels = []
+    monthly_rates = []
+    for i in range(5, -1, -1):
+        m_date = today.replace(day=1) - timedelta(days=i * 30)
+        m_total = Attendance.objects.filter(date__year=m_date.year, date__month=m_date.month).count()
+        m_present = Attendance.objects.filter(date__year=m_date.year, date__month=m_date.month, status__in=['present', 'late']).count()
+        monthly_labels.append(m_date.strftime('%b %Y'))
+        monthly_rates.append(round(m_present / m_total * 100, 1) if m_total > 0 else 0)
+
+    # Track-wise comparison
+    track_data = {}
+    for track in ['Software Engineering', 'UI/UX Design', 'Data Analytics']:
+        t_total = Attendance.objects.filter(internship_track=track).count()
+        t_present = Attendance.objects.filter(internship_track=track, status__in=['present', 'late']).count()
+        track_data[track] = round(t_present / t_total * 100, 1) if t_total > 0 else 0
+
+    # Most active students (highest attendance)
+    top_students = []
+    students = User.objects.filter(role='user').select_related('profile')
+    for s in students:
+        s_total = Attendance.objects.filter(student=s).count()
+        s_present = Attendance.objects.filter(student=s, status__in=['present', 'late']).count()
+        if s_total > 0:
+            top_students.append({
+                'name': s.profile.full_name if hasattr(s, 'profile') else s.username,
+                'percentage': round(s_present / s_total * 100, 1),
+                'total': s_total,
+            })
+    top_students.sort(key=lambda x: x['percentage'], reverse=True)
+
+    return JsonResponse({
+        'daily_labels': daily_labels,
+        'daily_rates': daily_rates,
+        'monthly_labels': monthly_labels,
+        'monthly_rates': monthly_rates,
+        'track_data': track_data,
+        'top_students': top_students[:10],
+    })
+
+
+@login_required
+def attendance_report(request):
+    if request.user.role == 'admin':
+        return redirect('attendance_dashboard')
+
+    student = request.user
+    today = date.today()
+
+    # Exclude July 2026 records
+    records = Attendance.objects.filter(student=student).exclude(date__year=2026, date__month=7).order_by('-date')
+    
+    if today.year == 2026 and today.month == 7:
+        today_attendance = None
+    else:
+        today_attendance = records.filter(date=today).first()
+
+    total = records.count()
+    present_count = records.filter(status='present').count()
+    absent_count = records.filter(status='absent').count()
+    late_count = records.filter(status='late').count()
+    leave_count = records.filter(status='leave').count()
+    attendance_pct = round((present_count + late_count) / total * 100, 1) if total > 0 else 0
+
+    # Calendar data for current month
+    selected_month = request.GET.get('month', '')
+    selected_year = request.GET.get('year', '')
+    try:
+        cal_year = int(selected_year) if selected_year else today.year
+        cal_month = int(selected_month) if selected_month else today.month
+    except (ValueError, TypeError):
+        cal_year = today.year
+        cal_month = today.month
+
+    # If the default or selected month is July 2026, override and fallback to June 2026
+    if cal_year == 2026 and cal_month == 7:
+        cal_year = 2026
+        cal_month = 6
+
+    cal = calendar.Calendar(firstweekday=0)
+    month_days = cal.monthdayscalendar(cal_year, cal_month)
+
+    month_records = records.filter(date__year=cal_year, date__month=cal_month)
+    month_att_map = {}
+    for r in month_records:
+        month_att_map[r.date.day] = r.status
+
+    # Monthly trend (last 6 months)
+    monthly_labels = []
+    monthly_pcts = []
+    base_date = date(2026, 6, 1) if (today.year == 2026 and today.month == 7) else today.replace(day=1)
+    for i in range(5, -1, -1):
+        m_date = base_date - timedelta(days=i * 30)
+        if m_date.year == 2026 and m_date.month == 7:
+            continue
+        m_records = records.filter(date__year=m_date.year, date__month=m_date.month)
+        m_total = m_records.count()
+        m_present = m_records.filter(status__in=['present', 'late']).count()
+        monthly_labels.append(m_date.strftime('%b %Y'))
+        monthly_pcts.append(round(m_present / m_total * 100, 1) if m_total > 0 else 0)
+
+    # Recent records
+    recent_records = records[:15]
+
+    context = {
+        'today_attendance': today_attendance,
+        'total': total,
+        'present_count': present_count,
+        'absent_count': absent_count,
+        'late_count': late_count,
+        'leave_count': leave_count,
+        'attendance_pct': attendance_pct,
+        'month_days': month_days,
+        'month_att_map': json.dumps(month_att_map),
+        'cal_year': cal_year,
+        'cal_month': cal_month,
+        'cal_month_name': calendar.month_name[cal_month],
+        'monthly_labels': json.dumps(monthly_labels),
+        'monthly_pcts': json.dumps(monthly_pcts),
+        'recent_records': recent_records,
+        'today_date': today,
+    }
+    context.update(get_erp_context(request))
+    return render(request, 'attendance-report.html', context)
+
+
+@login_required
+def attendance_export_own_csv(request):
+    if request.user.role == 'admin':
+        return redirect('attendance_export_csv')
+
+    records = Attendance.objects.filter(student=request.user).exclude(date__year=2026, date__month=7).order_by('-date')
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="my_attendance_report.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Date', 'Status', 'Track', 'Remarks'])
+
+    for att in records:
+        writer.writerow([
+            att.date.strftime('%Y-%m-%d'),
+            att.status.title(),
+            att.internship_track,
+            att.remarks,
+        ])
+
+    log_action(request.user, "Exported personal attendance CSV", request)
+    return response
+
+
+@login_required
+@csrf_protect
+def send_message_api(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'POST required.'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        data = request.POST
+
+    body = data.get('body', '').strip()
+    receiver_id = data.get('receiver_id')
+    group_name = data.get('group_name', '').strip()
+
+    if not body:
+        return JsonResponse({'success': False, 'message': 'Message body cannot be empty.'}, status=400)
+
+    # Resolve receiver
+    receiver = None
+    if receiver_id:
+        try:
+            receiver = User.objects.get(id=receiver_id)
+        except User.DoesNotExist:
+            pass
+
+    # Save message in the database
+    msg = Message.objects.create(
+        sender=request.user,
+        receiver=receiver,
+        group_name=group_name if not receiver else "",
+        subject="Direct ERP Message" if receiver else f"Group: {group_name}",
+        body=body
+    )
+
+    # Notification logic
+    sender_name = request.user.profile.full_name if hasattr(request.user, 'profile') and request.user.profile.full_name else request.user.username
+    if receiver:
+        # Create notification for specific user
+        Notification.objects.create(
+            user=receiver,
+            title="New Message",
+            message=f"You received a message from {sender_name}.",
+            level="info"
+        )
+    elif group_name:
+        # Create notifications for all other users in that group/track
+        recipients = User.objects.filter(role='user')
+        if group_name == 'all-cohort':
+            # Exclude sender if sender is a user
+            recipients = recipients.exclude(id=request.user.id)
+        else:
+            # Match track
+            recipients = recipients.filter(profile__track=group_name).exclude(id=request.user.id)
+
+        for user in recipients:
+            Notification.objects.create(
+                user=user,
+                title=f"New Group Message: {group_name}",
+                message=f"{sender_name} posted in {group_name}: {body[:50]}...",
+                level="info"
+            )
+
+    return JsonResponse({
+        'success': True,
+        'message': 'Message sent successfully.',
+        'msg': {
+            'id': msg.id,
+            'sender_id': msg.sender.id,
+            'receiver_id': msg.receiver.id if msg.receiver else None,
+            'group_name': msg.group_name or "",
+            'subject': msg.subject,
+            'body': msg.body,
+            'is_read': msg.is_read,
+            'created_at': msg.created_at.isoformat()
+        }
+    })
+
+
+@login_required
+@csrf_protect
+def mark_messages_read_api(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'POST required.'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        data = request.POST
+
+    receiver_id = data.get('receiver_id')
+    group_name = data.get('group_name', '').strip()
+
+    if receiver_id:
+        Message.objects.filter(sender_id=receiver_id, receiver=request.user, is_read=False).update(is_read=True)
+    elif group_name:
+        Message.objects.filter(group_name=group_name, is_read=False).exclude(sender=request.user).update(is_read=True)
+
+    return JsonResponse({'success': True})
 

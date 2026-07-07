@@ -59,4 +59,17 @@ urlpatterns = [
     path('admin/api/users/delete/', views.admin_user_delete, name='admin_user_delete'),
     path('admin/api/users/<int:user_id>/details/', views.admin_user_details, name='admin_user_details'),
     path('api/check-status/', views.check_status_api, name='check_status_api'),
+
+    # Attendance Management Module
+    path('attendance/dashboard/', views.attendance_dashboard, name='attendance_dashboard'),
+    path('attendance/mark/', views.attendance_mark, name='attendance_mark'),
+    path('attendance/list/', views.attendance_list, name='attendance_list'),
+    path('attendance/details/<int:user_id>/', views.attendance_details, name='attendance_details'),
+    path('attendance/export/csv/', views.attendance_export_csv, name='attendance_export_csv'),
+    path('attendance/export/pdf/', views.attendance_export_pdf, name='attendance_export_pdf'),
+    path('api/attendance/analytics/', views.attendance_analytics_api, name='attendance_analytics_api'),
+    path('reports/attendance/', views.attendance_report, name='attendance_report'),
+    path('reports/attendance/csv/', views.attendance_export_own_csv, name='attendance_export_own_csv'),
+    path('api/messages/send/', views.send_message_api, name='send_message_api'),
+    path('api/messages/read/', views.mark_messages_read_api, name='mark_messages_read_api'),
 ]

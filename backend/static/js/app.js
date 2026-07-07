@@ -48,13 +48,13 @@ function refreshSystemState() {
             
             handleNotificationsBadge();
             const pathName = window.location.pathname;
-            if (pathName.includes("dashboard.html") || pathName.endsWith("/dashboard/")) {
+            if (pathName.includes("dashboard.html") || pathName.endsWith("/erp/dashboard/")) {
                 renderUserDashboard();
-            } else if (pathName.includes("admin-dashboard.html") || pathName.endsWith("/admin-dashboard/")) {
+            } else if (pathName.includes("admin-dashboard.html") || pathName.endsWith("/erp/admin-dashboard/")) {
                 renderAdminDashboard();
-            } else if (pathName.includes("user-management.html") || pathName.endsWith("/user-management/")) {
+            } else if (pathName.includes("user-management.html") || pathName.endsWith("/erp/user-management/")) {
                 renderUserManagement();
-            } else if (pathName.includes("notifications.html") || pathName.endsWith("/notifications/")) {
+            } else if (pathName.includes("notifications.html") || pathName.endsWith("/erp/notifications/")) {
                 renderNotificationsPage();
             }
             return data;
@@ -123,11 +123,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Page specific handlers
     const pathName = window.location.pathname;
     
-    if (pathName.includes("dashboard.html") || pathName.endsWith("/dashboard/")) {
+    if (pathName.includes("dashboard.html") || pathName.endsWith("/erp/dashboard/")) {
         renderUserDashboard();
-    } else if (pathName.includes("admin-dashboard.html") || pathName.endsWith("/admin-dashboard/")) {
+    } else if (pathName.includes("admin-dashboard.html") || pathName.endsWith("/erp/admin-dashboard/")) {
         renderAdminDashboard();
-    } else if (pathName.includes("user-management.html") || pathName.endsWith("/user-management/")) {
+    } else if (pathName.includes("user-management.html") || pathName.endsWith("/erp/user-management/")) {
         const searchInput = document.getElementById("admin-search-users");
         if (searchInput) {
             searchInput.addEventListener("input", (e) => {
@@ -149,33 +149,33 @@ document.addEventListener("DOMContentLoaded", () => {
             }, 100);
         }
         renderUserManagement();
-    } else if (pathName.includes("upload-files.html") || pathName.endsWith("/upload-files/")) {
+    } else if (pathName.includes("upload-files.html") || pathName.endsWith("/erp/upload-files/")) {
         setupFileUploader();
-    } else if (pathName.includes("messages.html") || pathName.endsWith("/messages/")) {
+    } else if (pathName.includes("messages.html") || pathName.endsWith("/erp/messages/")) {
         setupMessagesSystem();
-    } else if (pathName.includes("edit-profile.html") || pathName.endsWith("/edit-profile/")) {
+    } else if (pathName.includes("edit-profile.html") || pathName.endsWith("/erp/edit-profile/")) {
         setupEditProfileForm();
-    } else if (pathName.includes("settings.html") || pathName.endsWith("/settings/")) {
+    } else if (pathName.includes("settings.html") || pathName.endsWith("/erp/settings/")) {
         setupSettings();
-    } else if (pathName.includes("activity-logs.html") || pathName.endsWith("/activity-logs/")) {
+    } else if (pathName.includes("activity-logs.html") || pathName.endsWith("/erp/activity-logs/")) {
         renderActivityLogs();
-    } else if (pathName.includes("data-management.html") || pathName.endsWith("/data-management/")) {
+    } else if (pathName.includes("data-management.html") || pathName.endsWith("/erp/data-management/")) {
         setupDataManagement();
-    } else if (pathName.includes("reports.html") || pathName.endsWith("/reports/")) {
+    } else if (pathName.includes("reports.html") || pathName.endsWith("/erp/reports/")) {
         renderReportsPage();
-    } else if (pathName.includes("analytics.html") || pathName.endsWith("/analytics/")) {
+    } else if (pathName.includes("analytics.html") || pathName.endsWith("/erp/analytics/")) {
         renderAnalyticsPage();
-    } else if (pathName.includes("search.html") || pathName.endsWith("/search/")) {
+    } else if (pathName.includes("search.html") || pathName.endsWith("/erp/search/")) {
         setupSearchPage();
-    } else if (pathName.includes("history.html") || pathName.endsWith("/history/")) {
+    } else if (pathName.includes("history.html") || pathName.endsWith("/erp/history/")) {
         renderHistoryPage();
-    } else if (pathName.includes("notifications.html") || pathName.endsWith("/notifications/")) {
+    } else if (pathName.includes("notifications.html") || pathName.endsWith("/erp/notifications/")) {
         renderNotificationsPage();
-    } else if (pathName.includes("profile.html") || pathName.endsWith("/profile/") || (pathName.includes("/profile/") && !pathName.includes("/edit-profile/"))) {
+    } else if (pathName.includes("profile.html") || pathName.endsWith("/erp/profile/") || (pathName.includes("/erp/profile/") && !pathName.includes("/erp/edit-profile/"))) {
         renderProfilePage();
-    } else if (pathName.includes("feedback.html") || pathName.endsWith("/feedback/")) {
+    } else if (pathName.includes("feedback.html") || pathName.endsWith("/erp/feedback/")) {
         setupFeedbackForm();
-    } else if (pathName.includes("help-center.html") || pathName.endsWith("/help-center/")) {
+    } else if (pathName.includes("help-center.html") || pathName.endsWith("/erp/help-center/")) {
         setupHelpCenter();
     }
 });
@@ -225,7 +225,7 @@ function checkAuthentication(requiredRole) {
         return null;
     }
     if (requiredRole && user.role !== requiredRole) {
-        window.location.href = "404.html";
+        window.location.href = "/404/";
         return null;
     }
     return user;
@@ -774,22 +774,42 @@ function renderUserManagement() {
                 </div>
             </td>
             <td>
-                <div class="dropdown">
-                    <button class="btn btn-secondary-premium btn-sm dropdown-toggle py-1 px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Actions
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-dark glass-panel" style="border:1px solid var(--card-border);">
-                        <li><a class="dropdown-item" href="#" onclick="editUserModal(${u.id})"><i class="bi bi-pencil me-2 text-primary"></i> Edit User</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="toggleAccountStatus(${u.id}, ${u.is_active})"><i class="bi ${u.is_active ? 'bi-shield-slash-fill text-warning' : 'bi-shield-fill-check text-success'} me-2"></i> ${u.is_active ? 'Disable Account' : 'Enable Account'}</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="resetPasswordModal(${u.id})"><i class="bi bi-key-fill me-2 text-info"></i> Reset Password</a></li>
-                        <hr class="dropdown-divider border-secondary">
-                        <li><a class="dropdown-item" href="#" onclick="viewUserDetailsModal(${u.id}, 'profile')"><i class="bi bi-person-fill me-2"></i> View Profile</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="viewUserDetailsModal(${u.id}, 'uploads')"><i class="bi bi-file-earmark-arrow-up-fill me-2"></i> View Uploads</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="viewUserDetailsModal(${u.id}, 'reports')"><i class="bi bi-file-earmark-bar-graph-fill me-2"></i> View Reports</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="viewUserDetailsModal(${u.id}, 'notifications')"><i class="bi bi-bell-fill me-2"></i> View Notifications</a></li>
-                        <hr class="dropdown-divider border-secondary">
-                        <li><a class="dropdown-item" href="#" onclick="deleteUser(${u.id})"><i class="bi bi-trash-fill me-2 text-danger"></i> Delete User</a></li>
-                    </ul>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="status-action-btns">
+                        ${u.status === 'pending' ? `
+                            <div class="d-flex align-items-center gap-1">
+                                <button class="btn btn-success btn-sm py-1 px-2" onclick="changeUserStatus(${u.id}, 'approved')" title="Approve Candidate"><i class="bi bi-check-lg"></i> Approve</button>
+                                <button class="btn btn-danger btn-sm py-1 px-2" onclick="changeUserStatus(${u.id}, 'rejected')" title="Reject Candidate"><i class="bi bi-x-lg"></i> Reject</button>
+                            </div>
+                        ` : u.status === 'approved' ? `
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="badge bg-success-bg text-success border border-success py-1 px-2" style="font-size:0.75rem;"><i class="bi bi-check-circle-fill"></i> Approved</span>
+                                <button class="btn btn-outline-danger btn-sm py-1 px-2" onclick="changeUserStatus(${u.id}, 'rejected')" title="Change to Rejected" style="border-color: rgba(244, 63, 94, 0.4); color: #f43f5e;"><i class="bi bi-x-lg"></i></button>
+                            </div>
+                        ` : `
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="badge bg-danger-bg text-danger border border-danger py-1 px-2" style="font-size:0.75rem;"><i class="bi bi-x-circle-fill"></i> Rejected</span>
+                                <button class="btn btn-outline-success btn-sm py-1 px-2" onclick="changeUserStatus(${u.id}, 'approved')" title="Change to Approved" style="border-color: rgba(0, 230, 118, 0.4); color: #00e676;"><i class="bi bi-check-lg"></i></button>
+                            </div>
+                        `}
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary-premium btn-sm dropdown-toggle py-1 px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Options
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark glass-panel" style="border:1px solid var(--card-border);">
+                            <li><a class="dropdown-item" href="#" onclick="editUserModal(${u.id})"><i class="bi bi-pencil me-2 text-primary"></i> Edit User</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="toggleAccountStatus(${u.id}, ${u.is_active})"><i class="bi ${u.is_active ? 'bi-shield-slash-fill text-warning' : 'bi-shield-fill-check text-success'} me-2"></i> ${u.is_active ? 'Disable Account' : 'Enable Account'}</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="resetPasswordModal(${u.id})"><i class="bi bi-key-fill me-2 text-info"></i> Reset Password</a></li>
+                            <hr class="dropdown-divider border-secondary">
+                            <li><a class="dropdown-item" href="#" onclick="viewUserDetailsModal(${u.id}, 'profile')"><i class="bi bi-person-fill me-2"></i> View Profile</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="viewUserDetailsModal(${u.id}, 'uploads')"><i class="bi bi-file-earmark-arrow-up-fill me-2"></i> View Uploads</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="viewUserDetailsModal(${u.id}, 'reports')"><i class="bi bi-file-earmark-bar-graph-fill me-2"></i> View Reports</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="viewUserDetailsModal(${u.id}, 'notifications')"><i class="bi bi-bell-fill me-2"></i> View Notifications</a></li>
+                            <hr class="dropdown-divider border-secondary">
+                            <li><a class="dropdown-item" href="#" onclick="deleteUser(${u.id})"><i class="bi bi-trash-fill me-2 text-danger"></i> Delete User</a></li>
+                        </ul>
+                    </div>
                 </div>
             </td>
         `;
@@ -1382,6 +1402,7 @@ window.deleteUserFile = function(fileId, userId) {
 };
 
 // Interactive Messenger Layout
+// Interactive Messenger Layout
 function setupMessagesSystem() {
     const user = getLoggedInUser();
     if (!user) return;
@@ -1400,126 +1421,316 @@ function setupMessagesSystem() {
             const messageBody = document.getElementById("message-input").value;
             if (!messageBody.trim()) return;
             
-            const messages = JSON.parse(localStorage.getItem("erp_messages") || "[]");
-            const activeChatUserId = parseInt(chatWindow.dataset.activeUser || "1");
+            const chatType = chatWindow.dataset.chatType || "direct";
+            const chatTarget = chatWindow.dataset.chatTarget || "1";
             
-            const newMsg = {
-                id: messages.length + 1,
-                sender_id: user.id,
-                receiver_id: activeChatUserId,
-                subject: "Direct ERP Message",
-                body: messageBody,
-                is_read: false,
-                created_at: new Date().toISOString()
+            const postData = {
+                body: messageBody
             };
+            if (chatType === "group") {
+                postData.group_name = chatTarget;
+            } else {
+                postData.receiver_id = parseInt(chatTarget);
+            }
             
-            messages.push(newMsg);
-            localStorage.setItem("erp_messages", JSON.stringify(messages));
-            document.getElementById("message-input").value = "";
-            renderChatHistory(user.id, activeChatUserId);
-            
-            // Auto simulate reply if admin is sending message or user is sending message
-            setTimeout(() => {
-                if (user.role === "user") {
-                    // Simulate Admin reply
-                    const autoReply = {
-                        id: messages.length + 2,
-                        sender_id: 1, // Admin
-                        receiver_id: user.id,
-                        subject: "Re: Direct ERP Message",
-                        body: "Hello, this is BlueNova Admin. Your query has been logged. We will review your files shortly.",
-                        is_read: false,
-                        created_at: new Date().toISOString()
-                    };
-                    const msgs = JSON.parse(localStorage.getItem("erp_messages") || "[]");
-                    msgs.push(autoReply);
-                    localStorage.setItem("erp_messages", JSON.stringify(msgs));
-                    renderChatHistory(user.id, activeChatUserId);
-                    showToast("New message received from admin!", "info");
+            fetch("/erp/api/messages/send/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                body: JSON.stringify(postData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const messages = JSON.parse(localStorage.getItem("erp_messages") || "[]");
+                    messages.push(data.msg);
+                    localStorage.setItem("erp_messages", JSON.stringify(messages));
+                    document.getElementById("message-input").value = "";
+                    renderChatHistory(user.id, chatType, chatTarget);
+                    refreshSystemState();
+                } else {
+                    showToast(data.message || "Failed to send message", "danger");
                 }
-            }, 2000);
+            })
+            .catch(err => {
+                showToast("Error communicating with server.", "danger");
+                console.error(err);
+            });
         });
     }
 }
 
-function renderInbox(currentUser) {
+function renderInbox(currentUser, autoSelect = true) {
     const inboxList = document.getElementById("inbox-list");
     if (!inboxList) return;
     
     const users = JSON.parse(localStorage.getItem("erp_users") || "[]");
+    const messages = JSON.parse(localStorage.getItem("erp_messages") || "[]");
     inboxList.innerHTML = "";
     
-    // Identify who the user can communicate with
-    // Admin communicates with everyone. User communicates with Admin.
-    let contacts = [];
+    // 1. Gather Group Chats
+    let rawGroups = [];
     if (currentUser.role === "admin") {
-        contacts = users.filter(u => u.role !== "admin");
+        rawGroups = [
+            { id: "all-cohort", name: "All Cohort Candidates", desc: "All candidate tracks", isGroup: true, avatarInitials: "AC" },
+            { id: "Software Engineering", name: "Software Engineering Group", desc: "Software Engineering track Group Chat", isGroup: true, avatarInitials: "SE" },
+            { id: "UI/UX Design", name: "UI/UX Design Group", desc: "UI/UX Design track Group Chat", isGroup: true, avatarInitials: "UX" },
+            { id: "Data Analytics", name: "Data Analytics Group", desc: "Data Analytics track Group Chat", isGroup: true, avatarInitials: "DA" }
+        ];
     } else {
-        contacts = users.filter(u => u.role === "admin");
+        rawGroups = [
+            { id: "all-cohort", name: "All Cohort Candidates", desc: "All candidate tracks", isGroup: true, avatarInitials: "AC" }
+        ];
+        const track = currentUser.track || "Software Engineering";
+        let initials = "SE";
+        if (track === "UI/UX Design") initials = "UX";
+        if (track === "Data Analytics") initials = "DA";
+        rawGroups.push({ id: track, name: `${track} Group`, desc: `${track} Group Chat`, isGroup: true, avatarInitials: initials });
     }
     
-    contacts.forEach(contact => {
-        const item = document.createElement("div");
-        item.className = "p-3 mb-2 glass-panel glass-panel-hover" + (contact.id === 1 ? " border-primary" : "");
-        item.style.cursor = "pointer";
-        item.innerHTML = `
+    // Process Groups
+    const groupItems = rawGroups.map(g => {
+        const thread = messages.filter(m => m.group_name === g.id);
+        const lastMsg = thread.length > 0 ? thread[thread.length - 1] : null;
+        const lastTime = lastMsg ? new Date(lastMsg.created_at) : new Date(0);
+        const hasUnread = thread.some(m => m.sender_id !== currentUser.id && !m.is_read);
+        return {
+            id: g.id,
+            name: g.name,
+            desc: lastMsg ? lastMsg.body : g.desc,
+            isGroup: true,
+            avatarInitials: g.avatarInitials,
+            lastMessageTime: lastTime,
+            hasUnread: hasUnread
+        };
+    });
+    
+    // 2. Gather Direct Contacts
+    let rawContacts = [];
+    if (currentUser.role === "admin") {
+        rawContacts = users.filter(u => u.role !== "admin");
+    } else {
+        rawContacts = users.filter(u => u.role === "admin");
+    }
+    
+    // Process Direct Contacts
+    const contactItems = rawContacts.map(contact => {
+        const thread = messages.filter(m => 
+            !m.group_name && (
+                (m.sender_id === currentUser.id && m.receiver_id === contact.id) ||
+                (m.sender_id === contact.id && m.receiver_id === currentUser.id)
+            )
+        );
+        const lastMsg = thread.length > 0 ? thread[thread.length - 1] : null;
+        const lastTime = lastMsg ? new Date(lastMsg.created_at) : new Date(0);
+        const hasUnread = thread.some(m => m.sender_id === contact.id && !m.is_read);
+        return {
+            id: contact.id,
+            name: contact.full_name || contact.username,
+            desc: lastMsg ? lastMsg.body : (contact.role === "admin" ? "Systems Administrator" : (contact.track || "")),
+            isGroup: false,
+            avatar: contact.avatar,
+            lastMessageTime: lastTime,
+            hasUnread: hasUnread
+        };
+    });
+    
+    // 3. Combine and Sort by lastMessageTime descending (newest on top)
+    const allItems = [...groupItems, ...contactItems].sort((a, b) => b.lastMessageTime - a.lastMessageTime);
+    
+    // 4. Render
+    const chatWindow = document.getElementById("chat-window");
+    const activeType = chatWindow ? chatWindow.dataset.chatType : "";
+    const activeTarget = chatWindow ? chatWindow.dataset.chatTarget : "";
+    
+    allItems.forEach(item => {
+        const div = document.createElement("div");
+        
+        // Active border highlights
+        const isActive = (item.isGroup && activeType === "group" && activeTarget === item.id) ||
+                         (!item.isGroup && activeType === "direct" && activeTarget && parseInt(activeTarget) === item.id);
+        
+        div.className = `p-3 mb-2 glass-panel glass-panel-hover border ${isActive ? 'border-primary' : 'border-secondary'}`;
+        div.style.cursor = "pointer";
+        
+        // Red dot styling
+        const redDotHtml = item.hasUnread ? 
+            `<span class="badge rounded-circle bg-danger p-0 ms-2" style="width: 8px; height: 8px; display: inline-block;" title="Unread Message"></span>` : "";
+            
+        // Avatar column
+        let avatarHtml = "";
+        if (item.isGroup) {
+            avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white fw-bold" style="width:40px; height:40px; font-size:0.85rem; background: var(--primary-gradient); flex-shrink: 0;">
+                ${item.avatarInitials}
+            </div>`;
+        } else {
+            avatarHtml = `<img src="${item.avatar}" class="rounded-circle border border-secondary" width="40" height="40" style="flex-shrink: 0;">`;
+        }
+        
+        // Format last message time
+        let timeString = "";
+        if (item.lastMessageTime.getTime() > 0) {
+            const h = String(item.lastMessageTime.getHours()).padStart(2, '0');
+            const m = String(item.lastMessageTime.getMinutes()).padStart(2, '0');
+            timeString = `<span class="small text-secondary" style="font-size:0.7rem;">${h}:${m}</span>`;
+        }
+        
+        div.innerHTML = `
             <div class="d-flex align-items-center gap-3">
-                <img src="${contact.avatar}" class="rounded-circle" width="40" height="40">
+                ${avatarHtml}
                 <div class="flex-grow-1 overflow-hidden">
-                    <div class="fw-bold">${contact.full_name || contact.username}</div>
-                    <div class="small text-muted text-truncate">${contact.role === "admin" ? "Systems Administrator" : (contact.track || "")}</div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="fw-bold text-white d-flex align-items-center">
+                            <span>${item.name}</span>
+                            ${item.isGroup ? `<span class="badge bg-secondary ms-2" style="font-size:0.55rem;">GROUP</span>` : ""}
+                            ${redDotHtml}
+                        </div>
+                        ${timeString}
+                    </div>
+                    <div class="small text-secondary text-truncate mt-1" style="font-size:0.8rem;">${item.desc}</div>
                 </div>
             </div>
         `;
         
-        item.addEventListener("click", () => {
-            document.querySelectorAll("#inbox-list > div").forEach(d => d.style.borderColor = "var(--card-border)");
-            item.style.borderColor = "var(--primary)";
-            openChatWith(currentUser.id, contact.id, contact.full_name || contact.username);
+        div.addEventListener("click", () => {
+            document.querySelectorAll("#inbox-list > div").forEach(d => d.className = "p-3 mb-2 glass-panel glass-panel-hover border border-secondary");
+            div.className = "p-3 mb-2 glass-panel glass-panel-hover border border-primary";
+            openChatWith(currentUser.id, item.isGroup ? "group" : "direct", item.id, item.name);
         });
         
-        inboxList.appendChild(item);
+        inboxList.appendChild(div);
     });
     
-    // Auto load first contact
-    if (contacts.length > 0) {
-        openChatWith(currentUser.id, contacts[0].id, contacts[0].full_name || contacts[0].username);
+    // Auto load first item on initial load
+    if (autoSelect && allItems.length > 0) {
+        openChatWith(currentUser.id, allItems[0].isGroup ? "group" : "direct", allItems[0].id, allItems[0].name);
     }
 }
 
-function openChatWith(currentUserId, targetUserId, name) {
+function openChatWith(currentUserId, chatType, chatTarget, name) {
     const chatWindow = document.getElementById("chat-window");
     if (!chatWindow) return;
     
-    chatWindow.dataset.activeUser = targetUserId;
+    chatWindow.dataset.chatType = chatType;
+    chatWindow.dataset.chatTarget = chatTarget;
     document.getElementById("chat-partner-name").textContent = name;
-    renderChatHistory(currentUserId, targetUserId);
+    
+    // Mark messages as read locally
+    const messages = JSON.parse(localStorage.getItem("erp_messages") || "[]");
+    let changed = false;
+    if (chatType === "group") {
+        messages.forEach(m => {
+            if (m.group_name === chatTarget && m.sender_id !== currentUserId && !m.is_read) {
+                m.is_read = true;
+                changed = true;
+            }
+        });
+    } else {
+        const targetUserId = parseInt(chatTarget);
+        messages.forEach(m => {
+            if (!m.group_name && m.sender_id === targetUserId && m.receiver_id === currentUserId && !m.is_read) {
+                m.is_read = true;
+                changed = true;
+            }
+        });
+    }
+    
+    if (changed) {
+        localStorage.setItem("erp_messages", JSON.stringify(messages));
+        
+        // Post to backend API
+        const postData = {};
+        if (chatType === "group") {
+            postData.group_name = chatTarget;
+        } else {
+            postData.receiver_id = parseInt(chatTarget);
+        }
+        
+        fetch("/erp/api/messages/read/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify(postData)
+        })
+        .then(res => res.json())
+        .then(data => {
+            const user = getLoggedInUser();
+            if (user) {
+                renderInbox(user, false);
+            }
+        });
+    }
+    
+    renderChatHistory(currentUserId, chatType, chatTarget);
 }
 
-function renderChatHistory(currentUserId, targetUserId) {
+function renderChatHistory(currentUserId, chatType, chatTarget) {
     const chatBody = document.getElementById("chat-history");
     if (!chatBody) return;
     
     const messages = JSON.parse(localStorage.getItem("erp_messages") || "[]");
+    const users = JSON.parse(localStorage.getItem("erp_users") || "[]");
     
-    // Filter messages between user and target
-    const thread = messages.filter(m => 
-        (m.sender_id === currentUserId && m.receiver_id === targetUserId) ||
-        (m.sender_id === targetUserId && m.receiver_id === currentUserId)
-    ).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+    let thread = [];
+    if (chatType === "group") {
+        thread = messages.filter(m => m.group_name === chatTarget);
+    } else {
+        const targetUserId = parseInt(chatTarget);
+        thread = messages.filter(m => 
+            !m.group_name && (
+                (m.sender_id === currentUserId && m.receiver_id === targetUserId) ||
+                (m.sender_id === targetUserId && m.receiver_id === currentUserId)
+            )
+        );
+    }
+    
+    thread = thread.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
     
     chatBody.innerHTML = "";
     if (thread.length === 0) {
-        chatBody.innerHTML = `<div class="text-center text-muted py-5">No correspondence history. Start chat below.</div>`;
+        chatBody.innerHTML = `<div class="text-center text-muted py-5">No correspondence history. Start the conversation below.</div>`;
         return;
     }
     
     thread.forEach(msg => {
-        const bubble = document.createElement("div");
+        const bubbleContainer = document.createElement("div");
+        bubbleContainer.className = "mb-3 d-flex flex-column";
+        
         const isSent = msg.sender_id === currentUserId;
+        
+        if (isSent) {
+            bubbleContainer.className += " align-items-end";
+        } else {
+            bubbleContainer.className += " align-items-start";
+        }
+        
+        // Find sender details
+        let senderName = "System";
+        if (isSent) {
+            senderName = "You";
+        } else {
+            const senderUser = users.find(u => u.id === msg.sender_id);
+            if (senderUser) {
+                senderName = senderUser.full_name || senderUser.username;
+            }
+        }
+        
+        const nameLabel = document.createElement("span");
+        nameLabel.className = "text-secondary small mb-1";
+        nameLabel.style.fontSize = "0.75rem";
+        nameLabel.textContent = senderName;
+        bubbleContainer.appendChild(nameLabel);
+        
+        const bubble = document.createElement("div");
         bubble.className = `chat-bubble ${isSent ? 'sent' : 'received'}`;
         bubble.textContent = msg.body;
-        chatBody.appendChild(bubble);
+        bubbleContainer.appendChild(bubble);
+        
+        chatBody.appendChild(bubbleContainer);
     });
     
     chatBody.scrollTop = chatBody.scrollHeight;
@@ -1992,4 +2203,55 @@ function setupHelpCenter() {
             .catch(err => console.error("Failed to log help ticket", err));
         });
     }
+}
+
+// Global Sign Out Confirmation Interceptor
+document.addEventListener("click", (e) => {
+    const logoutLink = e.target.closest('a[href*="/auth/logout/"]');
+    if (logoutLink) {
+        e.preventDefault();
+        showLogoutConfirmation(logoutLink.href);
+    }
+});
+
+function showLogoutConfirmation(logoutUrl) {
+    let modal = document.getElementById("logout-confirm-modal");
+    if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "logout-confirm-modal";
+        modal.style.cssText = "display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.7); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); z-index:99999; align-items:center; justify-content:center;";
+        modal.innerHTML = `
+            <div class="glass-panel text-center p-4 rounded-4 shadow-lg" style="width: 360px; max-width: 90%; border: 1px solid var(--card-border); background: rgba(30, 41, 59, 0.85); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5);">
+                <div class="mb-3 text-center">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center bg-danger-bg text-danger" style="width:64px; height:64px; background: rgba(244,63,94,0.15); border: 1px solid rgba(244,63,94,0.3);">
+                        <i class="bi bi-box-arrow-right" style="font-size: 1.75rem;"></i>
+                    </div>
+                </div>
+                <h4 class="text-white mb-2 fw-bold">Sign Out?</h4>
+                <p class="text-secondary small mb-4" style="line-height:1.5;">Are you sure you want to end your current session and sign out of BlueNova ERP?</p>
+                <div class="d-flex gap-3 justify-content-center">
+                    <button id="logout-cancel-btn" class="btn btn-secondary-premium px-4 py-2" style="font-size:0.9rem;">Cancel</button>
+                    <button id="logout-confirm-btn" class="btn btn-danger px-4 py-2" style="background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); border:none; font-size:0.9rem;">Sign Out</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        modal.querySelector("#logout-cancel-btn").addEventListener("click", () => {
+            modal.style.display = "none";
+        });
+        
+        modal.addEventListener("click", (evt) => {
+            if (evt.target === modal) {
+                modal.style.display = "none";
+            }
+        });
+    }
+    
+    const confirmBtn = modal.querySelector("#logout-confirm-btn");
+    confirmBtn.onclick = () => {
+        window.location.href = logoutUrl;
+    };
+    
+    modal.style.display = "flex";
 }

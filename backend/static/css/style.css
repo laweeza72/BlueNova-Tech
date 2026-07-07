@@ -550,3 +550,288 @@ h1, h2, h3, h4, h5, h6 {
         left: 0;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   ATTENDANCE MODULE STYLES
+   ═══════════════════════════════════════════════════════════ */
+
+/* Attendance Status Badges */
+.status-present {
+    background: var(--success-bg);
+    color: var(--success);
+}
+.status-absent {
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+.status-late {
+    background: var(--warning-bg);
+    color: var(--warning);
+}
+.status-leave {
+    background: var(--info-bg);
+    color: var(--info);
+}
+
+/* Attendance Calendar Grid */
+.attendance-calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+.cal-header {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 8px 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.cal-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 10px;
+    transition: var(--transition-smooth);
+    cursor: default;
+    position: relative;
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid transparent;
+}
+.cal-day.empty {
+    background: transparent;
+}
+.cal-day.cal-present {
+    background: rgba(0, 230, 118, 0.15);
+    color: var(--success);
+    border-color: rgba(0, 230, 118, 0.3);
+}
+.cal-day.cal-absent {
+    background: rgba(244, 63, 94, 0.15);
+    color: var(--danger);
+    border-color: rgba(244, 63, 94, 0.3);
+}
+.cal-day.cal-late {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+.cal-day.cal-leave {
+    background: rgba(14, 165, 233, 0.15);
+    color: var(--info);
+    border-color: rgba(14, 165, 233, 0.3);
+}
+.cal-day.today {
+    box-shadow: 0 0 0 2px var(--primary);
+}
+
+/* Circular Progress Ring */
+.attendance-progress-ring {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.attendance-progress-ring svg {
+    transform: rotate(-90deg);
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.attendance-progress-ring .progress-track {
+    fill: none;
+    stroke: var(--card-border);
+    stroke-width: 8;
+}
+.attendance-progress-ring .progress-fill {
+    fill: none;
+    stroke: var(--primary);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.attendance-progress-ring .progress-text {
+    position: relative;
+    z-index: 2;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--text-main);
+}
+
+/* Filter Bar */
+.attendance-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+}
+.attendance-filter-bar .filter-group {
+    flex: 1;
+    min-width: 150px;
+}
+.attendance-filter-bar label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.attendance-filter-bar select,
+.attendance-filter-bar input {
+    width: 100%;
+}
+
+/* Quick Fill Buttons */
+.quick-fill-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.quick-fill-group .btn {
+    font-size: 0.8rem;
+    padding: 6px 14px;
+    border-radius: 8px;
+}
+
+/* Attendance Status Select in Table */
+.status-select {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--card-border);
+    color: var(--text-main);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    min-width: 120px;
+}
+.status-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(0, 200, 83, 0.15);
+    outline: none;
+}
+[data-theme="light"] .status-select {
+    background: #ffffff;
+    border-color: #cbd5e1;
+}
+
+/* Attendance Stat Card Accent Colors */
+.att-stat-present { border-left: 3px solid var(--success); }
+.att-stat-absent { border-left: 3px solid var(--danger); }
+.att-stat-late { border-left: 3px solid var(--warning); }
+.att-stat-leave { border-left: 3px solid var(--info); }
+.att-stat-total { border-left: 3px solid var(--primary); }
+.att-stat-pct { border-left: 3px solid #a855f7; }
+
+/* Attendance Table Remarks Input */
+.remarks-input {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--card-border);
+    color: var(--text-main);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    width: 100%;
+    transition: var(--transition-smooth);
+}
+.remarks-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(0, 200, 83, 0.15);
+    outline: none;
+}
+[data-theme="light"] .remarks-input {
+    background: #ffffff;
+    border-color: #cbd5e1;
+}
+
+/* Pagination Styles */
+.att-pagination {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.att-pagination a, .att-pagination span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: var(--transition-smooth);
+    color: var(--text-secondary);
+    border: 1px solid var(--card-border);
+    background: rgba(255, 255, 255, 0.02);
+}
+.att-pagination a:hover {
+    background: rgba(0, 200, 83, 0.1);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+.att-pagination .active {
+    background: var(--primary-gradient);
+    color: #fff;
+    border-color: transparent;
+}
+.att-pagination .disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* Calendar Legend */
+.cal-legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+.cal-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+.cal-legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+}
+.cal-legend-dot.present { background: var(--success); }
+.cal-legend-dot.absent { background: var(--danger); }
+.cal-legend-dot.late { background: var(--warning); }
+.cal-legend-dot.leave { background: var(--info); }
+
+@media (max-width: 768px) {
+    .attendance-filter-bar {
+        flex-direction: column;
+    }
+    .attendance-filter-bar .filter-group {
+        min-width: 100%;
+    }
+    .cal-day {
+        font-size: 0.7rem;
+    }
+    .attendance-progress-ring {
+        width: 90px;
+        height: 90px;
+    }
+    .attendance-progress-ring .progress-text {
+        font-size: 1.1rem;
+    }
+}
