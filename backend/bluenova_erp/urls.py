@@ -50,7 +50,9 @@ urlpatterns = [
     
     # Primary ERP System
     path('erp/', include('core.urls')),
+    path('erp/', include('resume.urls')),
     path('404/', page_404, name='page_404'),
+
 ]
 
 # Custom 404 handler

@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     # Custom apps
     'authentication.apps.AuthenticationConfig',
     'core.apps.CoreConfig',
+    'resume.apps.ResumeConfig',
 ]
 
 MIDDLEWARE = [
@@ -103,6 +104,9 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Resume Builder — output directory for generated PDFs
+RESUME_OUTPUT_DIR = os.path.join(BASE_DIR, 'media', 'resumes', 'generated')
 
 # Security Headers Configuration
 SECURE_BROWSER_XSS_FILTER = True

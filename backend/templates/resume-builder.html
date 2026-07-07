@@ -1,0 +1,2277 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Builder — BlueNova ERP</title>
+    <meta name="description" content="Build a professional, ATS-friendly resume with BlueNova ERP's AI-powered resume builder. Choose from 9 beautiful templates and download a polished PDF instantly.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+    <style>
+        /* ===================================================
+           RESUME BUILDER — STYLES & LAYOUT
+           =================================================== */
+        :root {
+            --rb-accent: #6c8eff;
+            --rb-accent2: #a78bfa;
+            --rb-success: #34d399;
+            --rb-warn: #fbbf24;
+            --rb-danger: #f87171;
+            --rb-glass: rgba(255,255,255,0.04);
+            --rb-border: rgba(255,255,255,0.08);
+            --rb-step-size: 38px;
+            --rb-bg-dark: #0f141c;
+            --rb-input-bg: #161b22;
+        }
+
+        /* Step Progress Bar */
+        .rb-steps {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .rb-steps::-webkit-scrollbar {
+            display: none;  /* Chrome, Safari, Opera */
+        }
+        .rb-step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+            cursor: pointer;
+            min-width: 75px;
+        }
+        .rb-step-item::before {
+            content: '';
+            position: absolute;
+            top: 19px;
+            left: -50%;
+            width: 100%;
+            height: 2px;
+            background: var(--rb-border);
+            z-index: 0;
+        }
+        .rb-step-item:first-child::before { display: none; }
+        .rb-step-item.done::before { background: var(--rb-accent); }
+        .rb-step-dot {
+            width: var(--rb-step-size);
+            height: var(--rb-step-size);
+            border-radius: 50%;
+            background: var(--rb-glass);
+            border: 2px solid var(--rb-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #aaa;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        .rb-step-item.active .rb-step-dot {
+            background: linear-gradient(135deg, var(--rb-accent), var(--rb-accent2));
+            border-color: var(--rb-accent);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(108,142,255,0.4);
+        }
+        .rb-step-item.done .rb-step-dot {
+            background: var(--rb-success);
+            border-color: var(--rb-success);
+            color: #fff;
+        }
+        .rb-step-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #666;
+            margin-top: 6px;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .rb-step-item.active .rb-step-label { color: var(--rb-accent); }
+        .rb-step-item.done .rb-step-label { color: var(--rb-success); }
+
+        /* Step Panels */
+        .rb-panel {
+            display: none;
+            animation: rb-fade-in 0.35s ease;
+        }
+        .rb-panel.active { display: block; }
+        @keyframes rb-fade-in {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .rb-card {
+            background: var(--rb-glass);
+            border: 1px solid var(--rb-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.2s;
+        }
+        .rb-card:hover { border-color: rgba(108,142,255,0.25); }
+
+        .rb-entry-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--rb-border);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 0.75rem;
+            position: relative;
+        }
+        .rb-entry-remove {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(248,113,113,0.15);
+            border: 1px solid rgba(248,113,113,0.3);
+            color: var(--rb-danger);
+            border-radius: 8px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .rb-entry-remove:hover { background: rgba(248,113,113,0.3); }
+
+        /* Inputs */
+        .rb-input {
+            background: var(--rb-input-bg);
+            border: 1px solid var(--rb-border);
+            border-radius: 10px;
+            color: #fff;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .rb-input:focus {
+            background: rgba(255,255,255,0.06);
+            border-color: var(--rb-accent);
+            box-shadow: 0 0 0 3px rgba(108,142,255,0.15);
+            color: #fff;
+            outline: none;
+        }
+        .rb-input::placeholder { color: #555; }
+        
+        /* Dropdowns in dark mode */
+        select.rb-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23ccc' class='bi bi-chevron-down' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 12px;
+            padding-right: 36px;
+        }
+        select.rb-input option {
+            background-color: var(--rb-bg-dark);
+            color: #fff;
+        }
+
+        .rb-label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: #888;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        /* Tags */
+        .rb-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            background: rgba(255,255,255,0.01);
+            border: 1px solid var(--rb-border);
+            border-radius: 10px;
+            padding: 8px;
+            min-height: 46px;
+            cursor: text;
+        }
+        .rb-tag {
+            background: rgba(108,142,255,0.18);
+            border: 1px solid rgba(108,142,255,0.3);
+            color: var(--rb-accent);
+            border-radius: 6px;
+            padding: 3px 10px;
+            font-size: 0.78rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .rb-tag-remove {
+            cursor: pointer;
+            color: rgba(108,142,255,0.6);
+        }
+        .rb-tag-remove:hover { color: var(--rb-danger); }
+        .rb-tags-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #fff;
+            font-size: 0.85rem;
+            min-width: 120px;
+            flex: 1;
+        }
+
+        /* Visual Theme Picker (Step 1) */
+        .rb-theme-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 1.25rem;
+        }
+        .rb-theme-card {
+            border: 2px solid var(--rb-border);
+            border-radius: 14px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: var(--rb-glass);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .rb-theme-card:hover {
+            border-color: rgba(108,142,255,0.5);
+            transform: translateY(-4px);
+        }
+        .rb-theme-card.selected {
+            border-color: var(--rb-accent);
+            background: rgba(108,142,255,0.06);
+            box-shadow: 0 0 20px rgba(108,142,255,0.25);
+        }
+        .rb-theme-img-wrap {
+            aspect-ratio: 0.73;
+            background: #111;
+            overflow: hidden;
+            border-bottom: 1px solid var(--rb-border);
+            position: relative;
+        }
+        .rb-theme-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top center;
+            transition: transform 0.4s ease;
+        }
+        .rb-theme-card:hover .rb-theme-img {
+            transform: scale(1.03);
+        }
+        .rb-theme-info {
+            padding: 12px;
+        }
+        .rb-theme-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+        .rb-theme-desc {
+            font-size: 0.72rem;
+            color: #666;
+            line-height: 1.2;
+        }
+        .rb-theme-badge-selected {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--rb-accent);
+            color: #fff;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            z-index: 10;
+        }
+        .rb-theme-card.selected .rb-theme-badge-selected {
+            display: flex;
+        }
+
+        /* Persistent Live Preview Column */
+        .rb-live-preview-panel {
+            position: sticky;
+            top: 24px;
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 120px);
+            overflow: hidden;
+        }
+        .rb-live-preview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--rb-border);
+            margin-bottom: 14px;
+        }
+        .rb-live-preview-body {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0,0,0,0.15);
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 480px;
+            border: 1px dashed var(--rb-border);
+            position: relative;
+        }
+        .rb-live-preview-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+        .rb-live-page {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            border: 1px solid var(--rb-border);
+            animation: rb-fade-in 0.25s ease;
+        }
+        .rb-live-preview-loading {
+            position: absolute;
+            inset: 0;
+            background: rgba(15,20,28,0.75);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            z-index: 100;
+            border-radius: 12px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+        .rb-live-preview-loading.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Buttons & navigation */
+        .rb-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--rb-border);
+        }
+        .rb-btn {
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+        }
+        .rb-btn-primary {
+            background: linear-gradient(135deg, var(--rb-accent), var(--rb-accent2));
+            color: #fff;
+        }
+        .rb-btn-primary:hover { opacity: 0.95; transform: translateY(-1px); }
+        .rb-btn-secondary {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--rb-border);
+            color: #ccc;
+        }
+        .rb-btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .rb-btn-success {
+            background: linear-gradient(135deg, var(--rb-success), #059669);
+            color: #fff;
+        }
+        .rb-btn-danger {
+            background: rgba(248,113,113,0.15);
+            border: 1px solid rgba(248,113,113,0.3);
+            color: var(--rb-danger);
+        }
+        .rb-btn-danger:hover { background: rgba(248,113,113,0.25); }
+        .rb-add-btn {
+            width: 100%;
+            padding: 10px;
+            background: rgba(108,142,255,0.07);
+            border: 1px dashed rgba(108,142,255,0.3);
+            border-radius: 10px;
+            color: var(--rb-accent);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+        }
+        .rb-add-btn:hover { background: rgba(108,142,255,0.14); border-color: var(--rb-accent); }
+
+        /* Save indicator */
+        .rb-save-indicator {
+            font-size: 0.78rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .rb-save-indicator.saving { background: rgba(251,191,36,0.15); color: var(--rb-warn); }
+        .rb-save-indicator.saved  { background: rgba(52,211,153,0.15); color: var(--rb-success); }
+        .rb-save-indicator.error  { background: rgba(248,113,113,0.15); color: var(--rb-danger); }
+
+        .rb-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(108,142,255,0.2);
+            border-top-color: var(--rb-accent);
+            border-radius: 50%;
+            animation: rb-spin 0.8s linear infinite;
+        }
+        @keyframes rb-spin { to { transform: rotate(360deg); } }
+
+        /* History items list */
+        .rb-gen-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--rb-border);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: border-color 0.2s;
+        }
+        .rb-gen-item:hover { border-color: rgba(108,142,255,0.2); }
+        .rb-gen-theme-badge {
+            font-size: 0.65rem;
+            padding: 1px 7px;
+            border-radius: 20px;
+            background: rgba(108,142,255,0.12);
+            color: var(--rb-accent);
+            border: 1px solid rgba(108,142,255,0.2);
+        }
+
+        /* Photo upload area styling */
+        .rb-photo-dropzone {
+            border: 2px dashed var(--rb-border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .rb-photo-dropzone:hover, .rb-photo-dropzone.drag-over {
+            border-color: var(--rb-accent);
+            background: rgba(108,142,255,0.06);
+        }
+        .rb-photo-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--rb-accent);
+            margin: 0 auto 1rem;
+            display: block;
+        }
+        .photo-theme-only {
+            display: none;
+        }
+        .photo-theme-only.visible {
+            display: block;
+        }
+
+        /* Zoom Preview Modal Styling */
+        .rb-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10,10,15,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: rb-modal-fade 0.22s ease-out;
+        }
+        .rb-modal-overlay.open {
+            display: flex;
+        }
+        @keyframes rb-modal-fade {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        .rb-modal {
+            background: #111827;
+            border: 1px solid var(--rb-border);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 850px;
+            max-height: 94vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6);
+        }
+        .rb-modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--rb-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .rb-modal-close {
+            background: rgba(255,255,255,0.06);
+            border: none;
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .rb-modal-close:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .rb-modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            background: #0f141c;
+        }
+        .rb-page-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--rb-border);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        .rb-page-nav button {
+            background: transparent;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 2px 6px;
+            display: flex;
+            align-items: center;
+        }
+        .rb-page-nav button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .rb-page-indicator {
+            font-size: 0.8rem;
+            color: #888;
+            font-weight: 600;
+        }
+        .rb-thumb-strip {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px;
+            max-width: 100%;
+            scrollbar-width: none;
+        }
+        .rb-thumb-strip::-webkit-scrollbar {
+            display: none;
+        }
+        .rb-thumb {
+            width: 65px;
+            height: 92px;
+            border-radius: 6px;
+            border: 2px solid transparent;
+            object-fit: cover;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .rb-thumb:hover {
+            opacity: 0.9;
+        }
+        .rb-thumb.active {
+            border-color: var(--rb-accent);
+            opacity: 1;
+            box-shadow: 0 0 10px rgba(108,142,255,0.3);
+        }
+        .rb-page-img-wrap {
+            max-width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .rb-page-img-wrap img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid var(--rb-border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: opacity 0.2s ease-in-out;
+        }
+        .rb-preview-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #888;
+            font-size: 0.88rem;
+        }
+
+        /* Toast notification styling */
+        #rb-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            min-width: 260px;
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+        #rb-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #rb-toast.success {
+            background: rgba(52,211,153,0.15);
+            border: 1px solid rgba(52,211,153,0.3);
+            color: var(--rb-success);
+        }
+        #rb-toast.error {
+            background: rgba(248,113,113,0.15);
+            border: 1px solid rgba(248,113,113,0.3);
+            color: var(--rb-danger);
+        }
+        #rb-toast.info {
+            background: rgba(108,142,255,0.15);
+            border: 1px solid rgba(108,142,255,0.3);
+            color: var(--rb-accent);
+        }
+    </style>
+</head>
+
+<body>
+
+{% if request.user.is_authenticated %}
+<script>
+    localStorage.setItem("erp_session", '{{ session_token|default:"" }}');
+</script>
+{% endif %}
+
+<!-- Large Zoom Preview Modal -->
+<div class="rb-modal-overlay" id="preview-modal" role="dialog" aria-modal="true">
+    <div class="rb-modal">
+        <div class="rb-modal-header">
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-white fw-semibold"><i class="bi bi-eye-fill text-primary me-2"></i>Full Preview</span>
+                <div class="rb-page-nav" id="modal-page-nav" style="display:none;">
+                    <button onclick="changeModalPage(-1)"><i class="bi bi-chevron-left"></i></button>
+                    <span class="rb-page-indicator" id="modal-page-indicator">Page 1 of 1</span>
+                    <button onclick="changeModalPage(1)"><i class="bi bi-chevron-right"></i></button>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a id="modal-download-link" href="#" class="rb-btn rb-btn-success py-1" target="_blank">
+                    <i class="bi bi-download"></i> Download PDF
+                </a>
+                <button class="rb-modal-close" onclick="closePreviewModal()"><i class="bi bi-x-lg"></i> Close</button>
+            </div>
+        </div>
+        <div class="rb-modal-body" id="preview-modal-body">
+            <div class="rb-preview-loading" id="modal-preview-loading">
+                <div class="rb-spinner"></div>
+                <span class="mt-2">Rendering preview...</span>
+            </div>
+            <div class="rb-thumb-strip" id="modal-thumb-strip" style="display:none;"></div>
+            <div class="rb-page-img-wrap" id="modal-page-img-wrap" style="display:none;">
+                <img id="modal-current-page-img" src="" alt="Resume Page Zoomed">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast notifications -->
+<div id="rb-toast" role="alert" aria-live="polite">
+    <i id="rb-toast-icon" class="bi bi-check-circle-fill"></i>
+    <span id="rb-toast-msg">Saved</span>
+</div>
+
+<div class="app-wrapper">
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar">
+        <div class="sidebar-header">
+            <a href="/erp/dashboard/" class="d-flex align-items-center gap-2 fw-bold text-white text-decoration-none">
+                <i class="bi bi-rocket-takeoff-fill text-primary"></i> <span>BlueNova ERP</span>
+            </a>
+            <button class="sidebar-toggler sidebar-toggle-btn d-lg-none"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="/erp/dashboard/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Dashboard</span></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/erp/profile/" class="sidebar-link"><i class="bi bi-person-fill"></i> <span>My Profile</span></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/erp/upload-files/" class="sidebar-link"><i class="bi bi-folder-fill"></i> <span>Files</span></a>
+            </li>
+            <li class="sidebar-item active">
+                <a href="/erp/resume/" class="sidebar-link"><i class="bi bi-file-earmark-person-fill"></i> <span>Resume Builder</span></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/erp/messages/" class="sidebar-link"><i class="bi bi-chat-left-text-fill"></i> <span>Messages</span></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/erp/history/" class="sidebar-link"><i class="bi bi-clock-history"></i> <span>History</span></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/erp/help-center/" class="sidebar-link"><i class="bi bi-question-circle-fill"></i> <span>Help Center</span></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/erp/feedback/" class="sidebar-link"><i class="bi bi-star-fill"></i> <span>Feedback</span></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/erp/settings/" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a>
+            </li>
+            <li class="sidebar-item mt-5">
+                <a href="/auth/logout/" class="sidebar-link text-danger"><i class="bi bi-box-arrow-right"></i> <span>Sign Out</span></a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="app-content">
+        <header class="app-navbar">
+            <div class="d-flex align-items-center gap-3">
+                <button class="sidebar-toggler sidebar-toggle-btn d-lg-block text-white" aria-label="Toggle Sidebar"><i class="bi bi-list"></i></button>
+                <h5 class="mb-0 text-white">Resume Builder</h5>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span id="rb-save-status" class="rb-save-indicator"></span>
+            </div>
+        </header>
+
+        <div class="app-body">
+            <!-- Header title -->
+            <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h2 class="text-white mb-1">Professional Resume Builder</h2>
+                    <p class="text-secondary small mb-0">Build your ATS-friendly resume. Live side-by-side preview updates automatically as you save.</p>
+                </div>
+                <div>
+                    <a href="/erp/resume/history/" class="rb-btn rb-btn-secondary" style="border-color: rgba(108,142,255,0.3); color:#fff; background: rgba(108,142,255,0.1);">
+                        <i class="bi bi-clock-history"></i> Generation History
+                    </a>
+                </div>
+            </div>
+
+
+            <div class="row g-4">
+                <!-- Left Side: Form wizard steps -->
+                <div class="col-xl-7">
+                    <div class="glass-panel p-4">
+                        <!-- Step Navigation -->
+                        <div class="rb-steps" id="rb-steps" role="tablist">
+                            <div class="rb-step-item active" data-step="1" onclick="goToStep(1)" role="tab">
+                                <div class="rb-step-dot">1</div>
+                                <span class="rb-step-label">Template</span>
+                            </div>
+                            <div class="rb-step-item" data-step="2" onclick="goToStep(2)" role="tab">
+                                <div class="rb-step-dot">2</div>
+                                <span class="rb-step-label">Personal</span>
+                            </div>
+                            <div class="rb-step-item" data-step="3" onclick="goToStep(3)" role="tab">
+                                <div class="rb-step-dot">3</div>
+                                <span class="rb-step-label">Social</span>
+                            </div>
+                            <div class="rb-step-item" data-step="4" onclick="goToStep(4)" role="tab">
+                                <div class="rb-step-dot">4</div>
+                                <span class="rb-step-label">Education</span>
+                            </div>
+                            <div class="rb-step-item" data-step="5" onclick="goToStep(5)" role="tab">
+                                <div class="rb-step-dot">5</div>
+                                <span class="rb-step-label">Experience</span>
+                            </div>
+                            <div class="rb-step-item" data-step="6" onclick="goToStep(6)" role="tab">
+                                <div class="rb-step-dot">6</div>
+                                <span class="rb-step-label">Projects</span>
+                            </div>
+                            <div class="rb-step-item" data-step="7" onclick="goToStep(7)" role="tab">
+                                <div class="rb-step-dot">7</div>
+                                <span class="rb-step-label">Skills</span>
+                            </div>
+                            <div class="rb-step-item" data-step="8" onclick="goToStep(8)" role="tab">
+                                <div class="rb-step-dot">8</div>
+                                <span class="rb-step-label">Extras</span>
+                            </div>
+                        </div>
+
+                        <!-- ==============================
+                             STEP 1 — CHOOSE TEMPLATE FIRST
+                             ============================== -->
+                        <div class="rb-panel active" id="step-1">
+                            <h5 class="text-white mb-2"><i class="bi bi-palette-fill text-primary me-2"></i>Select Resume Template</h5>
+                            <p class="text-secondary small mb-4">Choose a professional Typst-based theme. You can switch themes at any time.</p>
+                            
+                            <div class="rb-theme-gallery" id="theme-gallery">
+
+                                <!-- SB2Nov -->
+                                <div class="rb-theme-card selected" data-theme="sb2nov" onclick="selectTheme(this)">
+                                    <div class="rb-theme-badge-selected">✓</div>
+                                    <div class="rb-theme-img-wrap">
+                                        <img src="/static/images/themes/sb2nov.png" alt="SB2Nov Theme" class="rb-theme-img" loading="lazy">
+                                    </div>
+                                    <div class="rb-theme-info">
+                                        <div class="rb-theme-name">SB2Nov</div>
+                                        <div class="rb-theme-desc">Compact, classic LaTeX look with sleek blue accents. Highly popular.</div>
+                                    </div>
+                                </div>
+                                <!-- Engineering Resumes -->
+                                <div class="rb-theme-card" data-theme="engineeringresumes" onclick="selectTheme(this)">
+                                    <div class="rb-theme-badge-selected">✓</div>
+                                    <div class="rb-theme-img-wrap">
+                                        <img src="/static/images/themes/engineeringresumes.png" alt="Engineering Theme" class="rb-theme-img" loading="lazy">
+                                    </div>
+                                    <div class="rb-theme-info">
+                                        <div class="rb-theme-name">Engineering</div>
+                                        <div class="rb-theme-desc">Designed specifically for technical, software, & engineering positions.</div>
+                                    </div>
+                                </div>
+                                <!-- Harvard -->
+                                <div class="rb-theme-card" data-theme="harvard" onclick="selectTheme(this)">
+                                    <div class="rb-theme-badge-selected">✓</div>
+                                    <div class="rb-theme-img-wrap">
+                                        <img src="/static/images/themes/harvard.png" alt="Harvard Theme" class="rb-theme-img" loading="lazy">
+                                    </div>
+                                    <div class="rb-theme-info">
+                                        <div class="rb-theme-name">Harvard</div>
+                                        <div class="rb-theme-desc">Academic look with clean serif typography. Timeless format.</div>
+                                    </div>
+                                </div>
+                                <!-- Ink -->
+                                <div class="rb-theme-card" data-theme="ink" onclick="selectTheme(this)">
+                                    <div class="rb-theme-badge-selected">✓</div>
+                                    <div class="rb-theme-img-wrap">
+                                        <img src="/static/images/themes/ink.png" alt="Ink Theme" class="rb-theme-img" loading="lazy">
+                                    </div>
+                                    <div class="rb-theme-info">
+                                        <div class="rb-theme-name">Ink</div>
+                                        <div class="rb-theme-desc">Extremely minimalist, space-efficient design with great margins.</div>
+                                    </div>
+                                </div>
+                                <!-- Opal -->
+                                <div class="rb-theme-card" data-theme="opal" onclick="selectTheme(this)">
+                                    <div class="rb-theme-badge-selected">✓</div>
+                                    <div class="rb-theme-img-wrap">
+                                        <img src="/static/images/themes/opal.png" alt="Opal Theme" class="rb-theme-img" loading="lazy">
+                                    </div>
+                                    <div class="rb-theme-info">
+                                        <div class="rb-theme-name">Opal</div>
+                                        <div class="rb-theme-desc">Modern sans-serif typography, clean horizontal dividers. Premium look.</div>
+                                    </div>
+                                </div>
+                                <!-- Ember -->
+                                <div class="rb-theme-card" data-theme="ember" onclick="selectTheme(this)">
+                                    <div class="rb-theme-badge-selected">✓</div>
+                                    <div class="rb-theme-img-wrap">
+                                        <img src="/static/images/themes/ember.png" alt="Ember Theme" class="rb-theme-img" loading="lazy">
+                                    </div>
+                                    <div class="rb-theme-info">
+                                        <div class="rb-theme-name">Ember</div>
+                                        <div class="rb-theme-desc">Warm, modern design with subtle vertical lines & timeline layout.</div>
+                                    </div>
+                                </div>
+                                <!-- Engineering Classic -->
+                                <div class="rb-theme-card" data-theme="engineeringclassic" onclick="selectTheme(this)">
+                                    <div class="rb-theme-badge-selected">✓</div>
+                                    <div class="rb-theme-img-wrap">
+                                        <img src="/static/images/themes/engineeringclassic.png" alt="Engineering Classic Theme" class="rb-theme-img" loading="lazy">
+                                    </div>
+                                    <div class="rb-theme-info">
+                                        <div class="rb-theme-name">Engineering Classic</div>
+                                        <div class="rb-theme-desc">Traditional layout tailored with bold technical headers.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="rb-nav">
+                                 <button class="rb-btn rb-btn-danger" style="background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); color: var(--rb-danger);" onclick="clearResumeBuilder()">
+                                     <i class="bi bi-trash"></i> Clear Form
+                                 </button>
+                                 <button class="rb-btn rb-btn-primary" onclick="saveThemeAndNext()">
+                                     Next: Personal Details <i class="bi bi-arrow-right"></i>
+                                 </button>
+                             </div>
+                        </div>
+
+                        <!-- ==============================
+                             STEP 2 — Personal Details
+                             ============================== -->
+                        <div class="rb-panel" id="step-2">
+                            <h5 class="text-white mb-3"><i class="bi bi-person-badge-fill text-primary me-2"></i>Personal Information</h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="rb-label">Full Name *</label>
+                                    <input type="text" class="rb-input w-100" id="p-name" placeholder="e.g. Jane Doe" maxlength="200">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="rb-label">Professional Headline</label>
+                                    <input type="text" class="rb-input w-100" id="p-headline" placeholder="e.g. Software Engineer | MSc CS">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="rb-label">Location</label>
+                                    <input type="text" class="rb-input w-100" id="p-location" placeholder="e.g. London, UK">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="rb-label">Email</label>
+                                    <input type="email" class="rb-input w-100" id="p-email" placeholder="you@example.com">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="rb-label">Phone</label>
+                                    <div class="position-relative">
+                                        <input type="tel" class="rb-input w-100" id="p-phone" placeholder="+91-98765-43210" oninput="validatePhoneField(this)">
+                                    </div>
+                                    <div id="phone-hint" class="mt-1" style="font-size:0.76rem;"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="rb-label">Website / Portfolio</label>
+                                    <input type="url" class="rb-input w-100" id="p-website" placeholder="https://yoursite.com">
+                                </div>
+                            </div>
+
+
+                            <div class="rb-nav">
+                                <button class="rb-btn rb-btn-secondary" onclick="goToStep(1)"><i class="bi bi-arrow-left"></i> Back</button>
+                                <button class="rb-btn rb-btn-primary" onclick="savePersonalAndNext()">
+                                    Next: Social Links <i class="bi bi-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ==============================
+                             STEP 3 — Social Networks
+                             ============================== -->
+                        <div class="rb-panel" id="step-3">
+                            <h5 class="text-white mb-1"><i class="bi bi-share-fill text-primary me-2"></i>Social Networks</h5>
+                            <p class="text-secondary small mb-4">Add links to GitHub, LinkedIn, ORCID, etc. which appear in the header.</p>
+                            <div id="social-list"></div>
+                            <button class="rb-add-btn" id="add-social-btn" onclick="addSocialRow()">
+                                <i class="bi bi-plus-circle"></i> Add Social Network
+                            </button>
+                            <div class="rb-nav">
+                                <button class="rb-btn rb-btn-secondary" onclick="goToStep(2)"><i class="bi bi-arrow-left"></i> Back</button>
+                                <button class="rb-btn rb-btn-primary" onclick="saveSocialAndNext()">Next: Education <i class="bi bi-arrow-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- ==============================
+                             STEP 4 — Education
+                             ============================== -->
+                        <div class="rb-panel" id="step-4">
+                            <h5 class="text-white mb-1"><i class="bi bi-mortarboard-fill text-primary me-2"></i>Education</h5>
+                            <p class="text-secondary small mb-4">Add your schools, degrees, and academic performance.</p>
+                            <div id="education-list"></div>
+                            <button class="rb-add-btn" onclick="addEducationEntry()">
+                                <i class="bi bi-plus-circle"></i> Add Education
+                            </button>
+                            <div class="rb-nav">
+                                <button class="rb-btn rb-btn-secondary" onclick="goToStep(3)"><i class="bi bi-arrow-left"></i> Back</button>
+                                <button class="rb-btn rb-btn-primary" onclick="saveSectionAndNext('education', 4)">Save &amp; Next <i class="bi bi-arrow-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- ==============================
+                             STEP 5 — Experience
+                             ============================== -->
+                        <div class="rb-panel" id="step-5">
+                            <h5 class="text-white mb-1"><i class="bi bi-briefcase-fill text-primary me-2"></i>Work Experience</h5>
+                            <p class="text-secondary small mb-4">List professional roles in reverse chronological order.</p>
+                            <div id="experience-list"></div>
+                            <button class="rb-add-btn" onclick="addExperienceEntry()">
+                                <i class="bi bi-plus-circle"></i> Add Experience
+                            </button>
+                            <div class="rb-nav">
+                                <button class="rb-btn rb-btn-secondary" onclick="goToStep(4)"><i class="bi bi-arrow-left"></i> Back</button>
+                                <button class="rb-btn rb-btn-primary" onclick="saveSectionAndNext('experience', 5)">Save &amp; Next <i class="bi bi-arrow-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- ==============================
+                             STEP 6 — Projects
+                             ============================== -->
+                        <div class="rb-panel" id="step-6">
+                            <h5 class="text-white mb-1"><i class="bi bi-code-slash text-primary me-2"></i>Projects</h5>
+                            <p class="text-secondary small mb-4">List key personal or academic projects. Links are hyperlinked in the PDF.</p>
+                            <div id="projects-list"></div>
+                            <button class="rb-add-btn" onclick="addProjectEntry()">
+                                <i class="bi bi-plus-circle"></i> Add Project
+                            </button>
+                            <div class="rb-nav">
+                                <button class="rb-btn rb-btn-secondary" onclick="goToStep(5)"><i class="bi bi-arrow-left"></i> Back</button>
+                                <button class="rb-btn rb-btn-primary" onclick="saveSectionAndNext('project', 6)">Save &amp; Next <i class="bi bi-arrow-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- ==============================
+                             STEP 7 — Skills
+                             ============================== -->
+                        <div class="rb-panel" id="step-7">
+                            <h5 class="text-white mb-1"><i class="bi bi-stars text-primary me-2"></i>Skills</h5>
+                            <p class="text-secondary small mb-4">Group your skills into categories (e.g. Languages, Frameworks, Databases).</p>
+                            <div id="skills-list"></div>
+                            <button class="rb-add-btn" onclick="addSkillEntry()">
+                                <i class="bi bi-plus-circle"></i> Add Skill Group
+                            </button>
+                            <div class="rb-nav">
+                                <button class="rb-btn rb-btn-secondary" onclick="goToStep(6)"><i class="bi bi-arrow-left"></i> Back</button>
+                                <button class="rb-btn rb-btn-primary" onclick="saveSectionAndNext('skill', 7)">Save &amp; Next <i class="bi bi-arrow-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- ==============================
+                             STEP 8 — Extras & Generate PDF
+                             ============================= -->
+                        <div class="rb-panel" id="step-8">
+                            <h5 class="text-white mb-1"><i class="bi bi-layers-fill text-primary me-2"></i>Additional Sections &amp; Compilation</h5>
+                            <p class="text-secondary small mb-4">Add optional sections (Publications, Awards, Certifications) and export your final PDF.</p>
+
+                            <div id="extra-sections-list"></div>
+
+                            <div class="d-flex gap-2 flex-wrap mb-4">
+                                <button class="rb-btn rb-btn-secondary py-2" onclick="addExtraSection('publication')"><i class="bi bi-journal-text text-primary"></i> Add Publications</button>
+                                <button class="rb-btn rb-btn-secondary py-2" onclick="addExtraSection('bullet')"><i class="bi bi-trophy text-warning"></i> Add Honors / Awards</button>
+                                <button class="rb-btn rb-btn-secondary py-2" onclick="addExtraSection('bullet')"><i class="bi bi-mic-fill text-info"></i> Add Talks / Certs</button>
+                                <button class="rb-btn rb-btn-secondary py-2" onclick="addExtraSection('normal')"><i class="bi bi-plus text-success"></i> Custom Free-Text Section</button>
+                            </div>
+
+                            <div class="rb-card p-4 border-primary">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rb-spinner" id="gen-spinner" style="display:none;"></div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="text-white mb-1">Generate Export Version</h6>
+                                        <p class="text-secondary small mb-0">Compile and freeze a formal version in your Generation History.</p>
+                                    </div>
+                                    <button class="rb-btn rb-btn-success" id="generate-btn" onclick="generateResume()">
+                                        <i class="bi bi-lightning-fill"></i> Compile PDF
+                                    </button>
+                                </div>
+                                <div id="gen-status" class="text-secondary small mt-2" style="display:none;"></div>
+                                <div id="gen-result" style="display:none;" class="mt-3">
+                                    <div class="d-flex gap-2 justify-content-end">
+                                        <a id="download-link" href="#" class="rb-btn rb-btn-success" target="_blank">
+                                            <i class="bi bi-download"></i> Download PDF
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="rb-nav">
+                                <button class="rb-btn rb-btn-secondary" onclick="goToStep(7)"><i class="bi bi-arrow-left"></i> Back</button>
+                                <div></div>
+                            </div>
+                        </div>
+
+                    </div><!-- /glass-panel -->
+                </div>
+
+                <!-- Right Side: Persistent Live Preview and Generation History -->
+                <div class="col-xl-5">
+                    <div class="rb-live-preview-panel">
+                        <div class="rb-live-preview-header">
+                            <h6 class="text-white mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-eye text-primary"></i> Live Preview
+                            </h6>
+                            <div class="rb-page-nav" id="live-page-nav" style="display:none;">
+                                <button class="py-1 px-2 border-0" onclick="changeLivePage(-1)" id="prev-live-btn" disabled><i class="bi bi-chevron-left" style="font-size:0.75rem;"></i></button>
+                                <span class="rb-page-indicator px-2" id="live-page-indicator" style="font-size:0.78rem;">Page 1 / 1</span>
+                                <button class="py-1 px-2 border-0" onclick="changeLivePage(1)" id="next-live-btn" disabled><i class="bi bi-chevron-right" style="font-size:0.75rem;"></i></button>
+                            </div>
+                            <button class="rb-btn rb-btn-secondary py-1 px-2 text-primary" style="font-size:0.75rem;" onclick="loadPreview()">
+                                <i class="bi bi-fullscreen"></i> Zoom
+                            </button>
+                        </div>
+                        
+                        <!-- Live Preview Display Container -->
+                        <div class="rb-live-preview-body" id="live-preview-body">
+                            <!-- Spinner Overlay -->
+                            <div class="rb-live-preview-loading" id="live-preview-loading">
+                                <div class="rb-spinner"></div>
+                                <span class="text-white small">Compiling live preview...</span>
+                            </div>
+
+                            <!-- No preview state -->
+                            <div id="no-preview-msg" class="text-center my-auto p-4">
+                                <i class="bi bi-file-earmark-text text-secondary mb-2" style="font-size:2.5rem;"></i>
+                                <p class="text-secondary small mb-0">Fill in your personal details to display the live preview.</p>
+                            </div>
+
+                            <!-- Target pages container -->
+                            <div class="rb-live-preview-container" id="live-preview-pages" style="display:none;">
+                                <img id="live-page-img" class="rb-live-page" src="" alt="Live Resume Page">
+                            </div>
+                        </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- /app-body -->
+    </main>
+</div><!-- /app-wrapper -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/app.js?v={% now "U" %}"></script>
+<script>
+// =============================================================
+// RESUME BUILDER — ENHANCED JAVASCRIPT
+// =============================================================
+
+function getCookie(name) {
+    const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : null;
+}
+const CSRF = getCookie('csrftoken');
+
+// Application Global State
+const STATE = {
+    currentStep: 1,
+    totalSteps: 8,
+    selectedTheme: 'sb2nov',
+    currentResumeId: null,
+    downloadUrl: '',
+    sectionIds: { education: null, experience: null, project: null, skill: null },
+    extraSectionIds: [],
+    livePages: [],
+    currentLivePageIndex: 0
+};
+
+// Prefill JSON from views context
+const PREFILL = {{ profile_data_json|safe }};
+
+// ============================================================
+// TOAST NOTIFICATIONS
+// ============================================================
+function showToast(msg, type = 'success') {
+    const toast = document.getElementById('rb-toast');
+    const icon  = document.getElementById('rb-toast-icon');
+    const txt   = document.getElementById('rb-toast-msg');
+    toast.className = `show ${type}`;
+    icon.className  = `bi ${type === 'success' ? 'bi-check-circle-fill' : type === 'error' ? 'bi-x-circle-fill' : 'bi-info-circle-fill'}`;
+    txt.textContent = msg;
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => { toast.className = toast.className.replace('show ', ''); }, 3000);
+}
+
+function setSaveStatus(state, msg = '') {
+    const el = document.getElementById('rb-save-status');
+    const map = { saving: ['saving', '⏳ Saving…'], saved: ['saved', '✓ Saved'], error: ['error', '✗ Error'] };
+    const [cls, def] = map[state] || ['', ''];
+    el.className = `rb-save-indicator ${cls}`;
+    el.textContent = msg || def;
+}
+
+// ============================================================
+// STEP SELECTION & LIVE PREVIEW TRIGGER
+// ============================================================
+function goToStep(n) {
+    if (n < 1 || n > STATE.totalSteps) return;
+    document.querySelectorAll('.rb-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(`step-${n}`).classList.add('active');
+
+    document.querySelectorAll('.rb-step-item').forEach(item => {
+        const s = parseInt(item.dataset.step);
+        item.classList.remove('active', 'done');
+        if (s < n) item.classList.add('done');
+        else if (s === n) item.classList.add('active');
+    });
+    STATE.currentStep = n;
+
+    // Control visibility of the Live Preview by step
+    const pageContainer = document.getElementById('live-preview-pages');
+    const noPreviewMsg = document.getElementById('no-preview-msg');
+    const nav = document.getElementById('live-page-nav');
+
+    if (n === 1) {
+        pageContainer.style.display = 'none';
+        nav.style.display = 'none';
+        noPreviewMsg.style.display = 'block';
+        noPreviewMsg.innerHTML = `
+            <i class="bi bi-palette text-secondary mb-2" style="font-size:2.5rem;"></i>
+            <p class="text-secondary small mb-0">Select a template on the left and click <strong>Next</strong> to start live preview.</p>
+        `;
+    } else {
+        if (STATE.livePages && STATE.livePages.length > 0) {
+            noPreviewMsg.style.display = 'none';
+            pageContainer.style.display = 'flex';
+            renderLivePage();
+        } else {
+            pageContainer.style.display = 'none';
+            nav.style.display = 'none';
+            noPreviewMsg.style.display = 'block';
+            noPreviewMsg.innerHTML = `
+                <i class="bi bi-file-earmark-text text-secondary mb-2" style="font-size:2.5rem;"></i>
+                <p class="text-secondary small mb-0">Fill in your details to activate the live preview.</p>
+            `;
+        }
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================================
+// LIVE ON-THE-FLY PREVIEW GENERATION
+// ============================================================
+async function updateLivePreview() {
+    if (STATE.currentStep === 1) return; // Hide/do not load preview on the template picker step
+
+    const loadingOverlay = document.getElementById('live-preview-loading');
+    const pageImg = document.getElementById('live-page-img');
+    const pageContainer = document.getElementById('live-preview-pages');
+    const noPreviewMsg = document.getElementById('no-preview-msg');
+    const nav = document.getElementById('live-page-nav');
+
+    loadingOverlay.classList.add('active');
+
+    try {
+        const r = await fetch('/erp/resume/live-preview/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body: JSON.stringify({ theme: STATE.selectedTheme })
+        });
+        const d = await r.json();
+
+        loadingOverlay.classList.remove('active');
+
+        if (d.success && d.pages && d.pages.length > 0) {
+            STATE.livePages = d.pages;
+            STATE.currentLivePageIndex = 0;
+            noPreviewMsg.style.display = 'none';
+            pageContainer.style.display = 'flex';
+
+            renderLivePage();
+        } else {
+            loadingOverlay.classList.remove('active');
+        }
+    } catch(e) {
+        loadingOverlay.classList.remove('active');
+    }
+}
+
+function renderLivePage() {
+    const pages = STATE.livePages;
+    const idx = STATE.currentLivePageIndex;
+    const total = pages.length;
+
+    const pageImg = document.getElementById('live-page-img');
+    const nav = document.getElementById('live-page-nav');
+
+    pageImg.style.opacity = '0';
+    pageImg.onload = () => { pageImg.style.opacity = '1'; };
+    pageImg.src = `data:image/png;base64,${pages[idx]}`;
+
+    if (total > 1) {
+        nav.style.display = 'flex';
+        document.getElementById('live-page-indicator').textContent = `Page ${idx + 1} / ${total}`;
+        document.getElementById('prev-live-btn').disabled = (idx === 0);
+        document.getElementById('next-live-btn').disabled = (idx >= total - 1);
+    } else {
+        nav.style.display = 'none';
+    }
+}
+
+function changeLivePage(delta) {
+    const total = STATE.livePages.length;
+    let nextIdx = STATE.currentLivePageIndex + delta;
+    if (nextIdx >= 0 && nextIdx < total) {
+        STATE.currentLivePageIndex = nextIdx;
+        renderLivePage();
+    }
+}
+
+// ============================================================
+// DOCUMENT PREFILL ON LOAD
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+    prefillTheme();
+    prefillPersonal();
+    prefillSocial();
+    prefillSections();
+    
+    // Check if personal details are filled to load live preview immediately
+    if (PREFILL.full_name) {
+        updateLivePreview();
+    }
+});
+
+function prefillTheme() {
+    const theme = PREFILL.selected_theme || 'sb2nov';
+    const card = document.querySelector(`.rb-theme-card[data-theme="${theme}"]`);
+    if (card) {
+        selectTheme(card);
+    }
+}
+
+function prefillPersonal() {
+    document.getElementById('p-name').value     = PREFILL.full_name || '';
+    document.getElementById('p-headline').value = PREFILL.headline  || '';
+    document.getElementById('p-location').value = PREFILL.location  || '';
+    document.getElementById('p-email').value    = PREFILL.email     || '';
+    document.getElementById('p-phone').value    = PREFILL.phone     || '';
+    document.getElementById('p-website').value  = PREFILL.website   || '';
+}
+
+function prefillSocial() {
+    (PREFILL.social_networks || []).forEach(sn => addSocialRow(sn.network, sn.username));
+}
+
+function prefillSections() {
+    (PREFILL.sections || []).forEach(section => {
+        const etype = section.entry_type;
+        if (['education','experience','project','skill'].includes(etype)) {
+            STATE.sectionIds[etype] = section.id;
+            section.entries.forEach(e => {
+                if (etype === 'education')  addEducationEntry(e);
+                if (etype === 'experience') addExperienceEntry(e);
+                if (etype === 'project')    addProjectEntry(e);
+                if (etype === 'skill')      addSkillEntry(e);
+            });
+        } else {
+            addExtraSection(etype, section.title, section.id, section.entries);
+        }
+    });
+}
+
+// ============================================================
+// THEME SELECT & PHOTO TOGGLE
+// ============================================================
+function selectTheme(el) {
+    if (!el) return;
+    document.querySelectorAll('.rb-theme-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    STATE.selectedTheme = el.dataset.theme;
+
+}
+
+async function saveThemeAndNext() {
+    setSaveStatus('saving');
+    // Save theme to server profile first
+    try {
+        const r = await fetch('/erp/resume/save/personal/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body: JSON.stringify({
+                full_name: document.getElementById('p-name').value.trim(),
+                headline:  document.getElementById('p-headline').value.trim(),
+                location:  document.getElementById('p-location').value.trim(),
+                email:     document.getElementById('p-email').value.trim(),
+                phone:     sanitizePhone(document.getElementById('p-phone').value.trim()),
+                website:   document.getElementById('p-website').value.trim(),
+                selected_theme: STATE.selectedTheme
+            })
+        });
+        const d = await r.json();
+        if (d.success) {
+            setSaveStatus('saved');
+            showToast('Template selected successfully!');
+            goToStep(2);
+            updateLivePreview();
+        } else {
+            setSaveStatus('error');
+            showToast(d.error || 'Save failed', 'error');
+        }
+    } catch(e) {
+        setSaveStatus('error');
+        showToast('Network error', 'error');
+    }
+}
+
+// ============================================================
+// STEP 2 — PERSONAL DETAILS SAVE
+// ============================================================
+async function savePersonalAndNext() {
+    setSaveStatus('saving');
+    const rawPhone = document.getElementById('p-phone').value.trim();
+    const payload = {
+        full_name: document.getElementById('p-name').value.trim(),
+        headline:  document.getElementById('p-headline').value.trim(),
+        location:  document.getElementById('p-location').value.trim(),
+        email:     document.getElementById('p-email').value.trim(),
+        phone:     sanitizePhone(rawPhone),
+        website:   document.getElementById('p-website').value.trim(),
+        selected_theme: STATE.selectedTheme,
+        social_networks: []
+    };
+    
+    // Carry over existing social network values to avoid wiping them
+    document.querySelectorAll('#social-list .rb-entry-card').forEach(row => {
+        const net = row.querySelector('[data-field="network"]').value;
+        const usr = row.querySelector('[data-field="username"]').value.trim();
+        if (usr) payload.social_networks.push({ network: net, username: usr });
+    });
+
+    try {
+        const r = await fetch('/erp/resume/save/personal/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body: JSON.stringify(payload)
+        });
+        const d = await r.json();
+        if (d.success) {
+            setSaveStatus('saved');
+            showToast('Personal info saved!');
+            goToStep(3);
+            updateLivePreview();
+        } else {
+            setSaveStatus('error');
+            showToast(d.error || 'Save failed', 'error');
+        }
+    } catch(e) {
+        setSaveStatus('error');
+        showToast('Network error', 'error');
+    }
+}
+
+// ============================================================
+// STEP 3 — SOCIAL NETWORKS
+// ============================================================
+const NETWORKS = ['LinkedIn','GitHub','GitLab','Instagram','ORCID','ResearchGate','Twitter','Mastodon','StackOverflow','YouTube','Telegram','WhatsApp','Medium','Substack','HackerNews','Reddit'];
+
+function addSocialRow(network = '', username = '') {
+    const container = document.getElementById('social-list');
+    const div = document.createElement('div');
+    div.className = 'rb-entry-card d-flex gap-3 align-items-center';
+    div.innerHTML = `
+        <select class="rb-input flex-shrink-0" style="width:160px;" data-field="network">
+            ${NETWORKS.map(n => `<option value="${n}" ${n===network?'selected':''}>${n}</option>`).join('')}
+        </select>
+        <input type="text" class="rb-input flex-grow-1" placeholder="Username / ID" data-field="username" value="${username}">
+        <button class="rb-entry-remove" onclick="this.closest('.rb-entry-card').remove()"><i class="bi bi-x"></i></button>
+    `;
+    container.appendChild(div);
+}
+
+async function saveSocialAndNext() {
+    setSaveStatus('saving');
+    const rows = document.querySelectorAll('#social-list .rb-entry-card');
+    const social_networks = [];
+    rows.forEach(row => {
+        const net = row.querySelector('[data-field="network"]').value;
+        const usr = row.querySelector('[data-field="username"]').value.trim();
+        if (usr) social_networks.push({ network: net, username: usr });
+    });
+    try {
+        const payload = {
+            full_name: document.getElementById('p-name').value.trim(),
+            headline:  document.getElementById('p-headline').value.trim(),
+            location:  document.getElementById('p-location').value.trim(),
+            email:     document.getElementById('p-email').value.trim(),
+            phone:     sanitizePhone(document.getElementById('p-phone').value.trim()),
+            website:   document.getElementById('p-website').value.trim(),
+            selected_theme: STATE.selectedTheme,
+            social_networks
+        };
+        const r = await fetch('/erp/resume/save/personal/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body: JSON.stringify(payload)
+        });
+        const d = await r.json();
+        if (d.success) {
+            setSaveStatus('saved');
+            showToast('Social networks saved!');
+            goToStep(4);
+            updateLivePreview();
+        } else {
+            setSaveStatus('error');
+            showToast(d.error, 'error');
+        }
+    } catch(e) {
+        setSaveStatus('error');
+        showToast('Network error', 'error');
+    }
+}
+
+// ============================================================
+// DYNAMIC ENTRY FIELDS WITH TAGS
+// ============================================================
+function createTagInput(initialTags = []) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'rb-tags';
+
+    const addTag = (text) => {
+        if (!text.trim()) return;
+        const tag = document.createElement('span');
+        tag.className = 'rb-tag';
+        tag.innerHTML = `${escapeHtml(text.trim())} <span class="rb-tag-remove" onclick="this.parentElement.remove()">✕</span>`;
+        wrapper.insertBefore(tag, inputEl);
+    };
+
+    const inputEl = document.createElement('input');
+    inputEl.className = 'rb-tags-input';
+    inputEl.placeholder = 'Type bullet and press Enter…';
+    inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addTag(inputEl.value);
+            inputEl.value = '';
+        }
+    });
+    wrapper.appendChild(inputEl);
+    wrapper.addEventListener('click', () => inputEl.focus());
+    initialTags.forEach(t => addTag(t));
+    return wrapper;
+}
+
+function getTagsFromWrapper(wrapper) {
+    return Array.from(wrapper.querySelectorAll('.rb-tag')).map(t => t.textContent.replace('✕','').trim());
+}
+
+function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ============================================================
+// STEP 4 — EDUCATION WITH GPA/MARKS
+// ============================================================
+function addEducationEntry(data = {}) {
+    const list = document.getElementById('education-list');
+    const card = document.createElement('div');
+    card.className = 'rb-entry-card';
+    card.innerHTML = `
+        <button class="rb-entry-remove" onclick="this.closest('.rb-entry-card').remove()"><i class="bi bi-x-lg"></i> Remove</button>
+        <div class="row g-3 mt-0">
+            <div class="col-md-6">
+                <label class="rb-label">Institution *</label>
+                <input type="text" class="rb-input w-100" data-f="institution" placeholder="e.g. Stanford University" value="${data.institution||''}">
+            </div>
+            <div class="col-md-6">
+                <label class="rb-label">Degree / Certificate</label>
+                <input type="text" class="rb-input w-100" data-f="degree" placeholder="BS / MS / PhD / High School" value="${data.degree||''}">
+            </div>
+            <div class="col-md-6">
+                <label class="rb-label">Major / Field of Study</label>
+                <input type="text" class="rb-input w-100" data-f="area" placeholder="e.g. Computer Science" value="${data.area||''}">
+            </div>
+            <div class="col-md-6">
+                <label class="rb-label">GPA / Marks / Percentage</label>
+                <input type="text" class="rb-input w-100" data-f="gpa" placeholder="e.g. GPA: 3.8/4.0 or 85%" value="${data.gpa||''}">
+            </div>
+            <div class="col-md-6">
+                <label class="rb-label">Location</label>
+                <input type="text" class="rb-input w-100" data-f="location" placeholder="e.g. Stanford, CA" value="${data.location||''}">
+            </div>
+            <div class="col-md-2">
+                <label class="rb-label">Start Date</label>
+                <input type="text" class="rb-input w-100" data-f="start_date" placeholder="2020-09" value="${data.start_date||''}">
+            </div>
+            <div class="col-md-2">
+                <label class="rb-label">End Date</label>
+                <input type="text" class="rb-input w-100" data-f="end_date" placeholder="present" value="${data.end_date||''}">
+            </div>
+            <div class="col-md-2">
+                <label class="rb-label">Single Date</label>
+                <input type="text" class="rb-input w-100" data-f="single_date" placeholder="e.g. 2024" value="${data.single_date||''}">
+            </div>
+            <div class="col-12">
+                <label class="rb-label">Summary Description</label>
+                <textarea class="rb-input w-100" data-f="summary" rows="2" placeholder="Optional brief summary...">${data.summary||''}</textarea>
+            </div>
+            <div class="col-12">
+                <label class="rb-label">Highlights (academic accomplishments)</label>
+            </div>
+        </div>
+    `;
+    const tagsWrapper = createTagInput(data.highlights || []);
+    tagsWrapper.dataset.f = 'highlights';
+    card.querySelector('.col-12:last-child').appendChild(tagsWrapper);
+    list.appendChild(card);
+}
+
+function collectEducationEntries() {
+    return Array.from(document.querySelectorAll('#education-list .rb-entry-card')).map(card => ({
+        institution: card.querySelector('[data-f=institution]').value.trim(),
+        degree:      card.querySelector('[data-f=degree]').value.trim(),
+        area:        card.querySelector('[data-f=area]').value.trim(),
+        gpa:         card.querySelector('[data-f=gpa]').value.trim(),
+        location:    card.querySelector('[data-f=location]').value.trim(),
+        start_date:  card.querySelector('[data-f=start_date]').value.trim(),
+        end_date:    card.querySelector('[data-f=end_date]').value.trim(),
+        single_date: card.querySelector('[data-f=single_date]').value.trim(),
+        summary:     card.querySelector('[data-f=summary]').value.trim(),
+        highlights:  getTagsFromWrapper(card.querySelector('[data-f=highlights]'))
+    }));
+}
+
+// ============================================================
+// STEP 5 — EXPERIENCE
+// ============================================================
+function addExperienceEntry(data = {}) {
+    const list = document.getElementById('experience-list');
+    const card = document.createElement('div');
+    card.className = 'rb-entry-card';
+    card.innerHTML = `
+        <button class="rb-entry-remove" onclick="this.closest('.rb-entry-card').remove()"><i class="bi bi-x-lg"></i> Remove</button>
+        <div class="row g-3 mt-0">
+            <div class="col-md-6">
+                <label class="rb-label">Company / Organisation *</label>
+                <input type="text" class="rb-input w-100" data-f="company" placeholder="e.g. Google" value="${data.company||''}">
+            </div>
+            <div class="col-md-6">
+                <label class="rb-label">Position / Role *</label>
+                <input type="text" class="rb-input w-100" data-f="position" placeholder="e.g. Software Engineer" value="${data.position||''}">
+            </div>
+            <div class="col-md-6">
+                <label class="rb-label">Location</label>
+                <input type="text" class="rb-input w-100" data-f="location" placeholder="e.g. Mountain View, CA" value="${data.location||''}">
+            </div>
+            <div class="col-md-2">
+                <label class="rb-label">Start Date</label>
+                <input type="text" class="rb-input w-100" data-f="start_date" placeholder="2022-06" value="${data.start_date||''}">
+            </div>
+            <div class="col-md-2">
+                <label class="rb-label">End Date</label>
+                <input type="text" class="rb-input w-100" data-f="end_date" placeholder="present" value="${data.end_date||''}">
+            </div>
+            <div class="col-md-2">
+                <label class="rb-label">Single Date</label>
+                <input type="text" class="rb-input w-100" data-f="single_date" placeholder="2022" value="${data.single_date||''}">
+            </div>
+            <div class="col-12">
+                <label class="rb-label">Summary Overview</label>
+                <textarea class="rb-input w-100" data-f="summary" rows="2" placeholder="Describe your main responsibilities...">${data.summary||''}</textarea>
+            </div>
+            <div class="col-12">
+                <label class="rb-label">Key Highlights (points of impact)</label>
+            </div>
+        </div>
+    `;
+    const tagsWrapper = createTagInput(data.highlights || []);
+    tagsWrapper.dataset.f = 'highlights';
+    card.querySelector('.col-12:last-child').appendChild(tagsWrapper);
+    list.appendChild(card);
+}
+
+function collectExperienceEntries() {
+    return Array.from(document.querySelectorAll('#experience-list .rb-entry-card')).map(card => ({
+        company:     card.querySelector('[data-f=company]').value.trim(),
+        position:    card.querySelector('[data-f=position]').value.trim(),
+        location:    card.querySelector('[data-f=location]').value.trim(),
+        start_date:  card.querySelector('[data-f=start_date]').value.trim(),
+        end_date:    card.querySelector('[data-f=end_date]').value.trim(),
+        single_date: card.querySelector('[data-f=single_date]').value.trim(),
+        summary:     card.querySelector('[data-f=summary]').value.trim(),
+        highlights:  getTagsFromWrapper(card.querySelector('[data-f=highlights]'))
+    }));
+}
+
+// ============================================================
+// STEP 6 — PROJECTS
+// ============================================================
+function addProjectEntry(data = {}) {
+    const list = document.getElementById('projects-list');
+    const card = document.createElement('div');
+    card.className = 'rb-entry-card';
+    card.innerHTML = `
+        <button class="rb-entry-remove" onclick="this.closest('.rb-entry-card').remove()"><i class="bi bi-x-lg"></i> Remove</button>
+        <div class="row g-3 mt-0">
+            <div class="col-md-6">
+                <label class="rb-label">Project Name *</label>
+                <input type="text" class="rb-input w-100" data-f="name" placeholder="e.g. BlueNova Platform" value="${data.name||''}">
+            </div>
+            <div class="col-md-6">
+                <label class="rb-label">Project URL</label>
+                <input type="url" class="rb-input w-100" data-f="url" placeholder="https://github.com/..." value="${data.url||''}">
+            </div>
+            <div class="col-md-4">
+                <label class="rb-label">Start Date</label>
+                <input type="text" class="rb-input w-100" data-f="start_date" placeholder="2023-01" value="${data.start_date||''}">
+            </div>
+            <div class="col-md-4">
+                <label class="rb-label">End Date</label>
+                <input type="text" class="rb-input w-100" data-f="end_date" placeholder="present" value="${data.end_date||''}">
+            </div>
+            <div class="col-md-4">
+                <label class="rb-label">Single Date</label>
+                <input type="text" class="rb-input w-100" data-f="single_date" placeholder="2023" value="${data.single_date||''}">
+            </div>
+            <div class="col-12">
+                <label class="rb-label">Summary</label>
+                <textarea class="rb-input w-100" data-f="summary" rows="2" placeholder="Brief project details...">${data.summary||''}</textarea>
+            </div>
+            <div class="col-12">
+                <label class="rb-label">Key Highlights</label>
+            </div>
+        </div>
+    `;
+    const tagsWrapper = createTagInput(data.highlights || []);
+    tagsWrapper.dataset.f = 'highlights';
+    card.querySelector('.col-12:last-child').appendChild(tagsWrapper);
+    list.appendChild(card);
+}
+
+function collectProjectEntries() {
+    return Array.from(document.querySelectorAll('#projects-list .rb-entry-card')).map(card => ({
+        name:        card.querySelector('[data-f=name]').value.trim(),
+        url:         card.querySelector('[data-f=url]').value.trim(),
+        start_date:  card.querySelector('[data-f=start_date]').value.trim(),
+        end_date:    card.querySelector('[data-f=end_date]').value.trim(),
+        single_date: card.querySelector('[data-f=single_date]').value.trim(),
+        summary:     card.querySelector('[data-f=summary]').value.trim(),
+        highlights:  getTagsFromWrapper(card.querySelector('[data-f=highlights]'))
+    }));
+}
+
+// ============================================================
+// STEP 7 — SKILLS
+// ============================================================
+function addSkillEntry(data = {}) {
+    const list = document.getElementById('skills-list');
+    const card = document.createElement('div');
+    card.className = 'rb-entry-card';
+    card.innerHTML = `
+        <button class="rb-entry-remove" onclick="this.closest('.rb-entry-card').remove()"><i class="bi bi-x-lg"></i> Remove</button>
+        <div class="row g-3 mt-0">
+            <div class="col-md-4">
+                <label class="rb-label">Category Name *</label>
+                <input type="text" class="rb-input w-100" data-f="label" placeholder="e.g. Languages" value="${data.label||''}">
+            </div>
+            <div class="col-md-8">
+                <label class="rb-label">List Details *</label>
+                <input type="text" class="rb-input w-100" data-f="details" placeholder="e.g. Python, Javascript, Go, HTML" value="${data.details||''}">
+            </div>
+        </div>
+    `;
+    list.appendChild(card);
+}
+
+function collectSkillEntries() {
+    return Array.from(document.querySelectorAll('#skills-list .rb-entry-card')).map(card => ({
+        label:   card.querySelector('[data-f=label]').value.trim(),
+        details: card.querySelector('[data-f=details]').value.trim()
+    }));
+}
+
+// ============================================================
+// GENERAL SECTION SAVING WITH LIVE PREVIEW TRIGGER
+// ============================================================
+async function saveSectionAndNext(etype, step) {
+    setSaveStatus('saving');
+    let entries = [];
+    let sectionTitle = '';
+    if (etype === 'education')  { entries = collectEducationEntries();  sectionTitle = 'Education'; }
+    if (etype === 'experience') { entries = collectExperienceEntries(); sectionTitle = 'Experience'; }
+    if (etype === 'project')    { entries = collectProjectEntries();    sectionTitle = 'Projects'; }
+    if (etype === 'skill')      { entries = collectSkillEntries();      sectionTitle = 'Skills'; }
+
+    const payload = {
+        section_id: STATE.sectionIds[etype],
+        title:      sectionTitle,
+        entry_type: etype,
+        order:      step,
+        entries
+    };
+    try {
+        const r = await fetch('/erp/resume/save/section/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body: JSON.stringify(payload)
+        });
+        const d = await r.json();
+        if (d.success) {
+            STATE.sectionIds[etype] = d.section_id;
+            setSaveStatus('saved');
+            showToast(`${sectionTitle} section saved!`);
+            goToStep(step + 1);
+            
+            // Trigger live preview reload
+            updateLivePreview();
+        } else {
+            setSaveStatus('error');
+            showToast(d.error || 'Save failed', 'error');
+        }
+    } catch(e) {
+        setSaveStatus('error');
+        showToast('Network error', 'error');
+    }
+}
+
+// ============================================================
+// STEP 8 — EXTRA SECTIONS & SAVE
+// ============================================================
+function addExtraSection(etype, titleHint = '', sectionId = null, entries = []) {
+    const container = document.getElementById('extra-sections-list');
+    const idx = STATE.extraSectionIds.length;
+    STATE.extraSectionIds.push({ id: sectionId, type: etype });
+
+    const titleMap = { publication: 'Publications', bullet: 'Awards', normal: 'Additional Activities' };
+    const defaultTitle = titleHint || titleMap[etype] || 'Other Details';
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'rb-card mb-3';
+    wrapper.dataset.idx = idx;
+
+    let entriesHtml = `
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center gap-3 flex-grow-1">
+                <input type="text" class="rb-input" data-f="title" placeholder="Section Title" value="${defaultTitle}" style="width:220px;">
+                <span class="rb-gen-theme-badge">${etype}</span>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="rb-btn rb-btn-secondary py-1" onclick="saveExtraSection(${idx})"><i class="bi bi-floppy-fill"></i> Save</button>
+                <button class="rb-btn rb-btn-danger py-1" onclick="deleteExtraSectionUI(${idx}, this)"><i class="bi bi-trash"></i></button>
+            </div>
+        </div>
+        <div class="extra-entries" data-idx="${idx}">
+    `;
+
+    if (etype === 'publication') {
+        entriesHtml += `</div><button class="rb-add-btn mt-2" onclick="addPublicationEntryUI(${idx})"><i class="bi bi-plus-circle"></i> Add Publication</button>`;
+    } else if (etype === 'bullet') {
+        entriesHtml += `</div><button class="rb-add-btn mt-2" onclick="addBulletEntryUI(${idx})"><i class="bi bi-plus-circle"></i> Add Bullet Item</button>`;
+    } else {
+        entriesHtml += `</div><button class="rb-add-btn mt-2" onclick="addNormalEntryUI(${idx})"><i class="bi bi-plus-circle"></i> Add Entry</button>`;
+    }
+
+    wrapper.innerHTML = entriesHtml;
+    container.appendChild(wrapper);
+
+    entries.forEach(e => {
+        if (etype === 'publication') addPublicationEntryUI(idx, e, wrapper);
+        else if (etype === 'bullet') addBulletEntryUI(idx, e, wrapper);
+        else addNormalEntryUI(idx, e, wrapper);
+    });
+}
+
+function addPublicationEntryUI(idx, data = {}, parentEl = null) {
+    const entriesDiv = parentEl ? parentEl.querySelector('.extra-entries') : document.querySelector(`.extra-entries[data-idx="${idx}"]`);
+    const card = document.createElement('div');
+    card.className = 'rb-entry-card';
+    card.innerHTML = `
+        <button class="rb-entry-remove" onclick="this.closest('.rb-entry-card').remove()"><i class="bi bi-x-lg"></i></button>
+        <div class="row g-3 mt-0">
+            <div class="col-12">
+                <label class="rb-label">Title *</label>
+                <input type="text" class="rb-input w-100" data-f="title" placeholder="e.g. A Typst compiler extension" value="${data.title||''}">
+            </div>
+            <div class="col-md-6">
+                <label class="rb-label">Authors (comma-separated, *you* in asterisks)</label>
+                <input type="text" class="rb-input w-100" data-f="authors_str" placeholder="*Jane Doe*, John Smith" value="${(data.authors||[]).join(', ')}">
+            </div>
+            <div class="col-md-6">
+                <label class="rb-label">Journal / Conference</label>
+                <input type="text" class="rb-input w-100" data-f="journal" placeholder="NeurIPS 2024" value="${data.journal||''}">
+            </div>
+            <div class="col-md-4">
+                <label class="rb-label">Date</label>
+                <input type="text" class="rb-input w-100" data-f="date" placeholder="2024-12" value="${data.date||''}">
+            </div>
+            <div class="col-md-4">
+                <label class="rb-label">DOI</label>
+                <input type="text" class="rb-input w-100" data-f="doi" placeholder="10.1002/..." value="${data.doi||''}">
+            </div>
+            <div class="col-md-4">
+                <label class="rb-label">URL</label>
+                <input type="url" class="rb-input w-100" data-f="url" value="${data.url||''}">
+            </div>
+        </div>
+    `;
+    entriesDiv.appendChild(card);
+}
+
+function addBulletEntryUI(idx, data = {}, parentEl = null) {
+    const entriesDiv = parentEl ? parentEl.querySelector('.extra-entries') : document.querySelector(`.extra-entries[data-idx="${idx}"]`);
+    const card = document.createElement('div');
+    card.className = 'rb-entry-card d-flex gap-3 align-items-center';
+    card.innerHTML = `
+        <textarea class="rb-input flex-grow-1" data-f="bullet" rows="1" placeholder="e.g. AWS Certified Solutions Architect (2024)">${data.bullet||''}</textarea>
+        <button class="rb-entry-remove position-static" onclick="this.closest('.rb-entry-card').remove()"><i class="bi bi-x"></i></button>
+    `;
+    entriesDiv.appendChild(card);
+}
+
+function addNormalEntryUI(idx, data = {}, parentEl = null) {
+    const entriesDiv = parentEl ? parentEl.querySelector('.extra-entries') : document.querySelector(`.extra-entries[data-idx="${idx}"]`);
+    const card = document.createElement('div');
+    card.className = 'rb-entry-card';
+    card.innerHTML = `
+        <button class="rb-entry-remove" onclick="this.closest('.rb-entry-card').remove()"><i class="bi bi-x-lg"></i></button>
+        <div class="row g-3 mt-0">
+            <div class="col-md-6">
+                <label class="rb-label">Name / Heading *</label>
+                <input type="text" class="rb-input w-100" data-f="name" value="${data.name||''}">
+            </div>
+            <div class="col-md-6">
+                <label class="rb-label">Location</label>
+                <input type="text" class="rb-input w-100" data-f="location" value="${data.location||''}">
+            </div>
+            <div class="col-md-4">
+                <label class="rb-label">Start Date</label>
+                <input type="text" class="rb-input w-100" data-f="start_date" value="${data.start_date||''}">
+            </div>
+            <div class="col-md-4">
+                <label class="rb-label">End Date</label>
+                <input type="text" class="rb-input w-100" data-f="end_date" value="${data.end_date||''}">
+            </div>
+            <div class="col-md-4">
+                <label class="rb-label">Single Date</label>
+                <input type="text" class="rb-input w-100" data-f="single_date" value="${data.single_date||''}">
+            </div>
+            <div class="col-12">
+                <label class="rb-label">Summary Details</label>
+                <textarea class="rb-input w-100" data-f="summary" rows="2">${data.summary||''}</textarea>
+            </div>
+        </div>
+    `;
+    entriesDiv.appendChild(card);
+}
+
+async function saveExtraSection(idx) {
+    const card = document.querySelector(`.rb-card[data-idx="${idx}"]`);
+    if (!card) return;
+    const etype = STATE.extraSectionIds[idx].type;
+    const title = card.querySelector('[data-f=title]').value.trim() || 'Extra Section';
+    const entriesDiv = card.querySelector('.extra-entries');
+    let entries = [];
+
+    if (etype === 'publication') {
+        entriesDiv.querySelectorAll('.rb-entry-card').forEach(e => {
+            const authorsStr = e.querySelector('[data-f=authors_str]').value.trim();
+            entries.push({
+                title:   e.querySelector('[data-f=title]').value.trim(),
+                authors: authorsStr ? authorsStr.split(',').map(a => a.trim()) : [],
+                journal: e.querySelector('[data-f=journal]').value.trim(),
+                date:    e.querySelector('[data-f=date]').value.trim(),
+                doi:     e.querySelector('[data-f=doi]').value.trim(),
+                url:     e.querySelector('[data-f=url]').value.trim()
+            });
+        });
+    } else if (etype === 'bullet') {
+        entriesDiv.querySelectorAll('.rb-entry-card').forEach(e => {
+            entries.push({ bullet: e.querySelector('[data-f=bullet]').value.trim() });
+        });
+    } else {
+        entriesDiv.querySelectorAll('.rb-entry-card').forEach(e => {
+            entries.push({
+                name:        e.querySelector('[data-f=name]').value.trim(),
+                location:    e.querySelector('[data-f=location]')?.value.trim() || '',
+                start_date:  e.querySelector('[data-f=start_date]')?.value.trim() || '',
+                end_date:    e.querySelector('[data-f=end_date]')?.value.trim() || '',
+                single_date: e.querySelector('[data-f=single_date]')?.value.trim() || '',
+                summary:     e.querySelector('[data-f=summary]')?.value.trim() || ''
+            });
+        });
+    }
+
+    setSaveStatus('saving');
+    try {
+        const r = await fetch('/erp/resume/save/section/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body: JSON.stringify({
+                section_id: STATE.extraSectionIds[idx].id,
+                title,
+                entry_type: etype,
+                order: 10 + idx,
+                entries
+            })
+        });
+        const d = await r.json();
+        if (d.success) {
+            STATE.extraSectionIds[idx].id = d.section_id;
+            setSaveStatus('saved');
+            showToast(`"${title}" saved!`);
+            updateLivePreview();
+        } else {
+            setSaveStatus('error');
+            showToast(d.error || 'Save failed', 'error');
+        }
+    } catch(e) {
+        setSaveStatus('error');
+        showToast('Network error', 'error');
+    }
+}
+
+async function deleteExtraSectionUI(idx, btn) {
+    const card = document.querySelector(`.rb-card[data-idx="${idx}"]`);
+    const sectionId = STATE.extraSectionIds[idx]?.id;
+    if (sectionId) {
+        await fetch(`/erp/resume/delete/section/${sectionId}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': CSRF }
+        });
+    }
+    if (card) card.remove();
+    showToast('Section removed', 'info');
+    updateLivePreview();
+}
+
+
+// ============================================================
+// FORM EXPORT / GENERATE ACTION
+// ============================================================
+async function generateResume() {
+    const btn      = document.getElementById('generate-btn');
+    const spinner  = document.getElementById('gen-spinner');
+    const statusEl = document.getElementById('gen-status');
+    const resultDiv= document.getElementById('gen-result');
+
+    btn.disabled = true;
+    spinner.style.display = 'block';
+    statusEl.style.display = 'block';
+    statusEl.textContent = '⚙️ Compiling PDF with Typst engine...';
+    resultDiv.style.display = 'none';
+
+    try {
+        const r = await fetch('/erp/resume/generate/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body: JSON.stringify({ theme: STATE.selectedTheme })
+        });
+        const d = await r.json();
+        spinner.style.display = 'none';
+        btn.disabled = false;
+
+        if (d.success) {
+            STATE.currentResumeId = d.resume_id;
+            STATE.downloadUrl = d.download_url;
+            document.getElementById('download-link').href = d.download_url;
+            resultDiv.style.display = 'block';
+            statusEl.textContent = '';
+            showToast('PDF compiled successfully!');
+
+            
+            // Auto open full-screen preview
+            setTimeout(() => openPreviewModal(d.resume_id, d.download_url), 400);
+        } else {
+            statusEl.textContent = '❌ ' + (d.error || 'Generation failed.');
+            showToast(d.error || 'Generation failed', 'error');
+        }
+    } catch(e) {
+        spinner.style.display = 'none';
+        btn.disabled = false;
+        statusEl.textContent = '❌ Network error. Please try again.';
+        showToast('Network error', 'error');
+    }
+}
+
+// ============================================================
+// ZOOM PREVIEW MODAL FUNCTIONS
+// ============================================================
+const PREVIEW_STATE = { pages: [], currentPage: 0, resumeId: null, downloadUrl: '' };
+
+function openPreviewModal(resumeId, downloadUrl) {
+    const modal = document.getElementById('preview-modal');
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    PREVIEW_STATE.resumeId = resumeId;
+    PREVIEW_STATE.downloadUrl = downloadUrl || '#';
+    PREVIEW_STATE.pages = [];
+    PREVIEW_STATE.currentPage = 0;
+
+    document.getElementById('modal-preview-loading').style.display = 'flex';
+    document.getElementById('modal-page-img-wrap').style.display = 'none';
+    document.getElementById('modal-thumb-strip').style.display = 'none';
+    document.getElementById('modal-page-nav').style.display = 'none';
+
+    const dlLink = document.getElementById('modal-download-link');
+    dlLink.href = downloadUrl || '#';
+    dlLink.style.display = downloadUrl ? 'flex' : 'none';
+
+    fetchModalPreview(resumeId);
+}
+
+function closePreviewModal() {
+    document.getElementById('preview-modal').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+document.getElementById('preview-modal').addEventListener('click', function(e) {
+    if (e.target === this) closePreviewModal();
+});
+
+async function fetchModalPreview(resumeId) {
+    try {
+        const r = await fetch(`/erp/resume/preview/${resumeId}/`);
+        const d = await r.json();
+
+        document.getElementById('modal-preview-loading').style.display = 'none';
+
+        if (d.success && d.pages && d.pages.length > 0) {
+            PREVIEW_STATE.pages = d.pages;
+            renderModalPreview();
+        } else {
+            showModalPreviewError(d.error || 'Zoom preview unavailable');
+        }
+    } catch(e) {
+        document.getElementById('modal-preview-loading').style.display = 'none';
+        showModalPreviewError('Network error loading Zoom preview');
+    }
+}
+
+function renderModalPreview() {
+    const pages = PREVIEW_STATE.pages;
+    const cur   = PREVIEW_STATE.currentPage;
+    const total = pages.length;
+
+    const imgWrap = document.getElementById('modal-page-img-wrap');
+    const img = document.getElementById('modal-current-page-img');
+    imgWrap.style.display = 'flex';
+    img.style.opacity = '0';
+    img.onload = () => { img.style.opacity = '1'; };
+    img.src = `data:image/png;base64,${pages[cur]}`;
+
+    const strip = document.getElementById('modal-thumb-strip');
+    const nav = document.getElementById('modal-page-nav');
+    
+    if (total > 1) {
+        strip.style.display = 'flex';
+        strip.innerHTML = pages.map((p, i) => `
+            <img src="data:image/png;base64,${p}"
+                 class="rb-thumb ${i === cur ? 'active' : ''}"
+                 alt="Page ${i+1}"
+                 onclick="goToModalPage(${i})">
+        `).join('');
+
+        nav.style.display = 'flex';
+        document.getElementById('modal-page-indicator').textContent = `Page ${cur + 1} of ${total}`;
+    } else {
+        strip.style.display = 'none';
+        nav.style.display = 'none';
+    }
+}
+
+function goToModalPage(index) {
+    if (index >= 0 && index < PREVIEW_STATE.pages.length) {
+        PREVIEW_STATE.currentPage = index;
+        renderModalPreview();
+    }
+}
+
+function changeModalPage(delta) {
+    goToModalPage(PREVIEW_STATE.currentPage + delta);
+}
+
+function showModalPreviewError(msg) {
+    const body = document.getElementById('preview-modal-body');
+    body.innerHTML = `
+        <div style="text-align:center; padding:3rem;">
+            <i class="bi bi-exclamation-circle-fill" style="font-size:2.5rem; color:var(--rb-danger);"></i>
+            <p class="text-secondary mt-3">${escapeHtml(msg)}</p>
+        </div>`;
+}
+
+function loadPreview() {
+    if (STATE.currentResumeId) {
+        openPreviewModal(STATE.currentResumeId, STATE.downloadUrl);
+    } else {
+        // Fallback: trigger Zoom on whatever pages are loaded in the live preview
+        if (STATE.livePages.length > 0) {
+            PREVIEW_STATE.pages = STATE.livePages;
+            PREVIEW_STATE.currentPage = STATE.currentLivePageIndex;
+            const modal = document.getElementById('preview-modal');
+            modal.classList.add('open');
+            document.getElementById('modal-preview-loading').style.display = 'none';
+            renderModalPreview();
+        } else {
+            showToast('Save personal details first to preview.', 'info');
+        }
+    }
+}
+
+// ============================================================
+// PHONE NUMBER SANITIZER
+// ============================================================
+function sanitizePhone(phone) {
+    if (!phone) return '';
+    const stripped = phone.replace(/[\s\-\(\)\.]+/g, '');
+
+    if (phone.trim().startsWith('+')) return phone.trim();
+
+    if (stripped.startsWith('00') && stripped.length >= 10)
+        return '+' + stripped.slice(2);
+
+    if (/^\d{10}$/.test(stripped))
+        return `+91-${stripped.slice(0,5)}-${stripped.slice(5)}`;
+
+    if (/^0\d{10}$/.test(stripped))
+        return '+' + stripped.slice(1);
+
+    return phone.trim();
+}
+
+function validatePhoneField(input) {
+    const hint = document.getElementById('phone-hint');
+    const val = input.value.trim();
+    if (!val) { hint.textContent = ''; return; }
+
+    if (val.startsWith('+')) {
+        hint.innerHTML = '<span style="color:var(--rb-success)">✓ Valid international format</span>';
+        input.style.borderColor = 'var(--rb-success)';
+    } else if (/^\d{10}$/.test(val.replace(/[\s\-\(\)\.]+/g,''))) {
+        hint.innerHTML = `<span style="color:var(--rb-warn)">⚠ Formatting as: <strong>+91-${val.slice(0,5)}-${val.slice(5)}</strong></span>`;
+        input.style.borderColor = 'var(--rb-warn)';
+    } else {
+        hint.innerHTML = '<span style="color:var(--rb-danger)">✗ Use international format: <strong>+91-98765-43210</strong></span>';
+        input.style.borderColor = 'var(--rb-danger)';
+    }
+}
+    async function clearResumeBuilder() {
+        if (!confirm('Are you sure you want to clear the entire builder form and start fresh? All uncompiled changes will be lost.')) return;
+        try {
+            const r = await fetch('/erp/resume/clear/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': CSRF }
+            });
+            const d = await r.json();
+            if (d.success) {
+                showToast('Builder form cleared!', 'info');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                showToast(d.error || 'Clear failed', 'error');
+            }
+        } catch {
+            showToast('Network error clearing builder', 'error');
+        }
+    }
+</script>
+</body>
+</html>
