@@ -1,4 +1,7 @@
+import time
 from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate, update_session_auth_hash
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
@@ -26,6 +29,10 @@ def log_action(user, action, request):
     )
 
 
+_MAX_LOGIN_ATTEMPTS = 5
+_LOCKOUT_SECONDS = 15 * 60  # 15 minutes
+
+
 @csrf_protect
 def login_view(request):
     if request.user.is_authenticated:
@@ -44,6 +51,18 @@ def login_view(request):
         if not username_val or not password_val:
             return JsonResponse({'success': False, 'message': 'Missing fields. Please enter both username/email and password.'}, status=400)
 
+        # --- Brute-force rate limiting (session-based) ---
+        now = time.time()
+        fail_count = request.session.get('login_fail_count', 0)
+        lockout_until = request.session.get('login_lockout_until', 0)
+
+        if lockout_until and now < lockout_until:
+            remaining = int((lockout_until - now) / 60) + 1
+            return JsonResponse({
+                'success': False,
+                'message': f'Too many failed attempts. Please wait {remaining} minute(s) before trying again.'
+            }, status=429)
+
         # 1. Search database & Check user existence
         try:
             if '@' in username_val:
@@ -51,6 +70,13 @@ def login_view(request):
             else:
                 user_obj = User.objects.get(username=username_val)
         except User.DoesNotExist:
+            # Count failed attempt even for non-existent users (prevents user enumeration timing bypass)
+            fail_count += 1
+            request.session['login_fail_count'] = fail_count
+            if fail_count >= _MAX_LOGIN_ATTEMPTS:
+                request.session['login_lockout_until'] = now + _LOCKOUT_SECONDS
+                request.session['login_fail_count'] = 0
+                return JsonResponse({'success': False, 'message': 'Too many failed attempts. Account locked for 15 minutes.'}, status=429)
             return JsonResponse({'success': False, 'message': 'User does not exist.'}, status=404)
 
         # 2. Check disabled account
@@ -60,9 +86,18 @@ def login_view(request):
         # 3. Verify password
         user = authenticate(request, username=user_obj.username, password=password_val)
         if user is None:
+            fail_count += 1
+            request.session['login_fail_count'] = fail_count
+            if fail_count >= _MAX_LOGIN_ATTEMPTS:
+                request.session['login_lockout_until'] = now + _LOCKOUT_SECONDS
+                request.session['login_fail_count'] = 0
+                return JsonResponse({'success': False, 'message': 'Too many failed attempts. Account locked for 15 minutes.'}, status=429)
             return JsonResponse({'success': False, 'message': 'Incorrect password.'}, status=400)
 
-        # 4. Login successful
+        # 4. Login successful — clear failure counters
+        request.session.pop('login_fail_count', None)
+        request.session.pop('login_lockout_until', None)
+
         auth_login(request, user)
         log_action(user, "User logged in", request)
 
@@ -186,24 +221,28 @@ def reset_password_view(request):
         if password != confirm_password:
             return JsonResponse({'success': False, 'message': 'Passwords do not match.'}, status=400)
 
-        if len(password) < 6:
-            return JsonResponse({'success': False, 'message': 'Password must be at least 6 characters.'}, status=400)
-
         try:
             user = User.objects.get(email=reset_email)
-            user.set_password(password)
-            user.save()
-
-            # Clear recovery session context
-            request.session.pop('reset_email', None)
-
-            return JsonResponse({
-                'success': True,
-                'message': 'Password updated successfully! Redirecting to login...',
-                'redirect': '/auth/login/'
-            })
         except User.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'User profile resolution error.'}, status=400)
+
+        # Validate against all AUTH_PASSWORD_VALIDATORS (min length 8, common passwords, etc.)
+        try:
+            validate_password(password, user=user)
+        except ValidationError as e:
+            return JsonResponse({'success': False, 'message': ' '.join(e.messages)}, status=400)
+
+        user.set_password(password)
+        user.save()
+
+        # Clear recovery session context
+        request.session.pop('reset_email', None)
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Password updated successfully! Redirecting to login...',
+            'redirect': '/auth/login/'
+        })
 
     return render(request, 'reset-password.html')
 

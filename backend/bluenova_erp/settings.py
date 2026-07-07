@@ -3,8 +3,11 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-SECRET_KEY = 'django-insecure-%c^$m51s&51w853-i4558e*d0d*#y@0@l7u-x!*y(6*5_a+b(8'
+# ─────────────────────────────────────────────────────────────────────────────
+# SECURITY — Change SECRET_KEY before deploying to production!
+# Generate a fresh one with: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+# ─────────────────────────────────────────────────────────────────────────────
+SECRET_KEY = 'django-insecure-%c^$m51s+51w853-i4558e*d0d*#y@0@l7u-x!*y(6*5_a+b(8'
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
@@ -82,9 +85,37 @@ AUTH_PASSWORD_VALIDATORS = [
 # Custom User Auth Settings
 AUTH_USER_MODEL = 'authentication.User'
 
-# Session Expiry Rules - 30 minutes
-SESSION_COOKIE_AGE = 1800  # 30 mins in seconds
+# ─────────────────────────────────────────────────────────────────────────────
+# SESSION & COOKIE SECURITY
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Store sessions in the database (default, backed by django.contrib.sessions)
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+# Session lifetime: 30 minutes of inactivity
+SESSION_COOKIE_AGE = 1800  # seconds
+
+# Extend session on every request so active users aren't logged out mid-work
+SESSION_SAVE_EVERY_REQUEST = True
+
+# Destroy session when browser closes (additional safety net)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Prevent JavaScript from reading the session cookie (mitigates XSS theft)
+SESSION_COOKIE_HTTPONLY = True
+
+# SameSite=Lax blocks CSRF via cross-site navigation while allowing normal links
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Set to True in production when serving over HTTPS
+# SESSION_COOKIE_SECURE = True  # Uncomment for HTTPS/production
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CSRF PROTECTION
+# ─────────────────────────────────────────────────────────────────────────────
+CSRF_COOKIE_HTTPONLY = False   # Must be False so JS can read the token for AJAX
+CSRF_COOKIE_SAMESITE = 'Lax'  # Consistent with session cookie policy
+# CSRF_COOKIE_SECURE = True    # Uncomment for HTTPS/production
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'

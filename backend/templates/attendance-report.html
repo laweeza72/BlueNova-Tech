@@ -25,52 +25,7 @@
     {% endif %}
 
     <div class="app-wrapper">
-        <aside class="app-sidebar">
-            <div class="sidebar-header">
-                <a href="/" class="d-flex align-items-center gap-2 fw-bold text-white text-decoration-none">
-                    <i class="bi bi-rocket-takeoff-fill text-primary"></i> <span>BlueNova ERP</span>
-                </a>
-                <button class="sidebar-toggler sidebar-toggle-btn d-lg-none"><i class="bi bi-x-lg"></i></button>
-            </div>
-            <ul class="sidebar-menu">
-                <li class="sidebar-item">
-                    <a href="/erp/dashboard/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Dashboard</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/erp/profile/" class="sidebar-link"><i class="bi bi-person-fill"></i> <span>My Profile</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/erp/upload-files/" class="sidebar-link"><i class="bi bi-folder-fill"></i> <span>Files</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/erp/resume/" class="sidebar-link"><i class="bi bi-file-earmark-person-fill"></i> <span>Resume Builder</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/erp/messages/" class="sidebar-link"><i class="bi bi-chat-left-text-fill"></i> <span>Messages</span></a>
-                </li>
-                <li class="sidebar-item active">
-                    <a href="/erp/reports/attendance/" class="sidebar-link"><i class="bi bi-calendar-check-fill"></i> <span>Attendance Report</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/erp/history/" class="sidebar-link"><i class="bi bi-clock-history"></i> <span>History</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/erp/reports/" class="sidebar-link"><i class="bi bi-file-earmark-bar-graph-fill"></i> <span>Reports Desk</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/erp/help-center/" class="sidebar-link"><i class="bi bi-question-circle-fill"></i> <span>Help Center</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/erp/feedback/" class="sidebar-link"><i class="bi bi-star-fill"></i> <span>Feedback</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'settings' %}" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a>
-                </li>
-                <li class="sidebar-item mt-5">
-                    <a href="/auth/logout/" class="sidebar-link text-danger"><i class="bi bi-box-arrow-right"></i> <span>Sign Out</span></a>
-                </li>
-            </ul>
-        </aside>
+        {% include "includes/sidebar.html" with active_tab="attendance" %}
 
         <main class="app-content">
             <header class="app-navbar">

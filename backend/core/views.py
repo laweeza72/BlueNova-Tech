@@ -160,14 +160,11 @@ def dashboard(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     logs = ActivityLog.objects.filter(user=request.user).order_by('-timestamp')[:5]
     
-    # Attendance data for dashboard card (excluding July 2026)
+    # Attendance data for dashboard card
     today = date.today()
-    records_all = Attendance.objects.filter(student=request.user).exclude(date__year=2026, date__month=7)
+    records_all = Attendance.objects.filter(student=request.user)
     
-    if today.year == 2026 and today.month == 7:
-        today_attendance = None
-    else:
-        today_attendance = records_all.filter(date=today).first()
+    today_attendance = records_all.filter(date=today).first()
         
     total_records = records_all.count()
     present_count = records_all.filter(status='present').count()
@@ -2202,13 +2199,9 @@ def attendance_report(request):
     student = request.user
     today = date.today()
 
-    # Exclude July 2026 records
-    records = Attendance.objects.filter(student=student).exclude(date__year=2026, date__month=7).order_by('-date')
+    records = Attendance.objects.filter(student=student).order_by('-date')
     
-    if today.year == 2026 and today.month == 7:
-        today_attendance = None
-    else:
-        today_attendance = records.filter(date=today).first()
+    today_attendance = records.filter(date=today).first()
 
     total = records.count()
     present_count = records.filter(status='present').count()
@@ -2227,11 +2220,6 @@ def attendance_report(request):
         cal_year = today.year
         cal_month = today.month
 
-    # If the default or selected month is July 2026, override and fallback to June 2026
-    if cal_year == 2026 and cal_month == 7:
-        cal_year = 2026
-        cal_month = 6
-
     cal = calendar.Calendar(firstweekday=0)
     month_days = cal.monthdayscalendar(cal_year, cal_month)
 
@@ -2243,11 +2231,9 @@ def attendance_report(request):
     # Monthly trend (last 6 months)
     monthly_labels = []
     monthly_pcts = []
-    base_date = date(2026, 6, 1) if (today.year == 2026 and today.month == 7) else today.replace(day=1)
+    base_date = today.replace(day=1)
     for i in range(5, -1, -1):
         m_date = base_date - timedelta(days=i * 30)
-        if m_date.year == 2026 and m_date.month == 7:
-            continue
         m_records = records.filter(date__year=m_date.year, date__month=m_date.month)
         m_total = m_records.count()
         m_present = m_records.filter(status__in=['present', 'late']).count()
@@ -2284,7 +2270,7 @@ def attendance_export_own_csv(request):
     if request.user.role == 'admin':
         return redirect('attendance_export_csv')
 
-    records = Attendance.objects.filter(student=request.user).exclude(date__year=2026, date__month=7).order_by('-date')
+    records = Attendance.objects.filter(student=request.user).order_by('-date')
 
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="my_attendance_report.csv"'

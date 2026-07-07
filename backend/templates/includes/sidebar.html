@@ -1,0 +1,86 @@
+<aside class="app-sidebar">
+    <div class="sidebar-header">
+        <a href="/" class="d-flex align-items-center gap-2 fw-bold text-white text-decoration-none">
+            <i class="bi bi-rocket-takeoff-fill text-primary"></i> <span>BlueNova ERP</span>
+        </a>
+        <button class="sidebar-toggler sidebar-toggle-btn d-lg-none"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <ul class="sidebar-menu">
+        {% if request.user.role == 'admin' %}
+            <!-- Admin Sidebar Menu -->
+            <li class="sidebar-item {% if active_tab == 'admin-dashboard' %}active{% endif %}">
+                <a href="/erp/admin-dashboard/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Control Center</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'user-management' %}active{% endif %}">
+                <a href="/erp/user-management/" class="sidebar-link"><i class="bi bi-people-fill"></i> <span>Candidate Management</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'user-approved' %}active{% endif %}">
+                <a href="/erp/user-management/?filter=approved" class="sidebar-link"><i class="bi bi-check-circle-fill text-success"></i> <span>Approved Candidates</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'user-rejected' %}active{% endif %}">
+                <a href="/erp/user-management/?filter=rejected" class="sidebar-link"><i class="bi bi-x-circle-fill text-danger"></i> <span>Rejected Candidates</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'attendance-dashboard' %}active{% endif %}">
+                <a href="/erp/attendance/dashboard/" class="sidebar-link"><i class="bi bi-calendar-check-fill"></i> <span>Attendance</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'messages' %}active{% endif %}">
+                <a href="/erp/messages/" class="sidebar-link"><i class="bi bi-chat-left-text-fill"></i> <span>Messages</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'notifications' %}active{% endif %}">
+                <a href="/erp/notifications/" class="sidebar-link"><i class="bi bi-bell-fill"></i> <span>Notifications <span class="badge bg-danger notif-badge ms-1" style="display:none;">0</span></span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'reports' %}active{% endif %}">
+                <a href="/erp/reports/" class="sidebar-link"><i class="bi bi-file-earmark-bar-graph-fill"></i> <span>Reports</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'analytics' %}active{% endif %}">
+                <a href="/erp/analytics/" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> <span>Analytics</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'activity-logs' %}active{% endif %}">
+                <a href="/erp/activity-logs/" class="sidebar-link"><i class="bi bi-journal-text"></i> <span>System Logs</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'data-management' %}active{% endif %}">
+                <a href="/erp/data-management/" class="sidebar-link"><i class="bi bi-hdd-network-fill"></i> <span>Data Control</span></a>
+            </li>
+        {% else %}
+            <!-- User/Intern Sidebar Menu -->
+            <li class="sidebar-item {% if active_tab == 'dashboard' %}active{% endif %}">
+                <a href="/erp/dashboard/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Dashboard</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'profile' %}active{% endif %}">
+                <a href="/erp/profile/" class="sidebar-link"><i class="bi bi-person-fill"></i> <span>My Profile</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'upload-files' %}active{% endif %}">
+                <a href="/erp/upload-files/" class="sidebar-link"><i class="bi bi-folder-fill"></i> <span>Files</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'resume' %}active{% endif %}">
+                <a href="/erp/resume/" class="sidebar-link"><i class="bi bi-file-earmark-person-fill"></i> <span>Resume Builder</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'messages' %}active{% endif %}">
+                <a href="/erp/messages/" class="sidebar-link"><i class="bi bi-chat-left-text-fill"></i> <span>Messages</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'attendance-report' %}active{% endif %}">
+                <a href="/erp/reports/attendance/" class="sidebar-link"><i class="bi bi-calendar-check-fill"></i> <span>Attendance Report</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'history' %}active{% endif %}">
+                <a href="/erp/history/" class="sidebar-link"><i class="bi bi-clock-history"></i> <span>History</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'reports' %}active{% endif %}">
+                <a href="/erp/reports/" class="sidebar-link"><i class="bi bi-file-earmark-bar-graph-fill"></i> <span>Reports Desk</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'help-center' %}active{% endif %}">
+                <a href="/erp/help-center/" class="sidebar-link"><i class="bi bi-question-circle-fill"></i> <span>Help Center</span></a>
+            </li>
+            <li class="sidebar-item {% if active_tab == 'feedback' %}active{% endif %}">
+                <a href="/erp/feedback/" class="sidebar-link"><i class="bi bi-star-fill"></i> <span>Feedback</span></a>
+            </li>
+        {% endif %}
+        
+        <!-- Shared items at the bottom -->
+        <li class="sidebar-item {% if active_tab == 'settings' %}active{% endif %}">
+            <a href="{% url 'settings' %}" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a>
+        </li>
+        <li class="sidebar-item mt-5">
+            <a href="/auth/logout/" class="sidebar-link text-danger"><i class="bi bi-box-arrow-right"></i> <span>Sign Out</span></a>
+        </li>
+    </ul>
+</aside>
