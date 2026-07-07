@@ -289,18 +289,53 @@ def profile_view(request, user_id=None):
 def edit_profile_view(request):
     profile = get_object_or_404(Profile, user=request.user)
     if request.method == 'POST':
-        profile.full_name = request.POST.get('fullname', '')
-        profile.phone = request.POST.get('phone', '')
-        profile.bio = request.POST.get('bio', '')
-        profile.skills = request.POST.get('skills', '')
-        profile.academic_background = request.POST.get('academic', '')
-        if 'track' in request.POST:
-            profile.track = request.POST.get('track', '')
-            
+        old_fullname = profile.full_name
+
+        profile.full_name           = request.POST.get('fullname', '').strip()
+        profile.phone               = request.POST.get('phone', '').strip()
+        profile.bio                 = request.POST.get('bio', '').strip()
+        profile.skills              = request.POST.get('skills', '').strip()
+        profile.academic_background = request.POST.get('academic', '').strip()
+        track = request.POST.get('track', '').strip()
+        if track:
+            profile.track = track
+
+        # Recalculate completion percentage
+        fields = [
+            profile.full_name,
+            profile.phone,
+            profile.bio,
+            profile.skills,
+            profile.academic_background,
+            profile.track,
+        ]
+        filled = sum(1 for f in fields if f)
+        profile.completion_percentage = int((filled / len(fields)) * 100)
+
         profile.save()
-        messages.success(request, "Profile updated successfully.")
-        log_action(request.user, "Updated profile metrics", request)
-        return JsonResponse({'success': True, 'message': 'Profile updated successfully.'})
+
+        # Build a meaningful audit log entry
+        changed_parts = []
+        if old_fullname != profile.full_name:
+            changed_parts.append('name')
+        if profile.phone:
+            changed_parts.append('phone')
+        if profile.bio:
+            changed_parts.append('bio')
+        if profile.skills:
+            changed_parts.append('skills')
+        if profile.academic_background:
+            changed_parts.append('academic background')
+        if profile.track:
+            changed_parts.append(f'track ({profile.track})')
+        summary = ', '.join(changed_parts) if changed_parts else 'profile fields'
+        log_action(request.user, f"Updated profile: {summary}", request)
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Profile updated successfully.',
+            'completion_percentage': profile.completion_percentage,
+        })
         
     context = {'profile': profile}
     context.update(get_erp_context(request))
