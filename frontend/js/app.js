@@ -1,45 +1,123 @@
 // Core ERP Utility and Interaction Layer
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function startRealtimePolling() {
+    const session = localStorage.getItem("erp_session");
+    if (!session) return;
+    
+    setInterval(() => {
+        fetch("/erp/api/check-status/")
+            .then(res => {
+                if (res.status === 401 || res.status === 403) {
+                    window.location.href = "/auth/login/";
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data.status === 'deleted') {
+                    showToast(data.message || "Your account has been removed.", "danger");
+                    localStorage.clear();
+                    setTimeout(() => {
+                        window.location.href = "/auth/login/";
+                    }, 2000);
+                } else if (data.status === 'disabled') {
+                    showToast(data.message || "Your account has been disabled.", "danger");
+                    localStorage.clear();
+                    setTimeout(() => {
+                        window.location.href = "/auth/login/";
+                    }, 2000);
+                } else if (data.status === 'ok') {
+                    // Update badges
+                    const badges = document.querySelectorAll(".notif-badge");
+                    badges.forEach(badge => {
+                        if (data.unread_count > 0) {
+                            badge.textContent = data.unread_count;
+                            badge.style.display = "inline-block";
+                        } else {
+                            badge.style.display = "none";
+                        }
+                    });
+                }
+            })
+            .catch(err => console.debug("Status sync check failed (user offline or backend idle)."));
+    }, 4000);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     initTheme();
     setupSidebarToggle();
     handleNotificationsBadge();
+    startRealtimePolling();
     
     // Page specific handlers
     const pathName = window.location.pathname;
     
-    if (pathName.includes("dashboard.html")) {
+    if (pathName.includes("dashboard.html") || pathName.endsWith("/dashboard/")) {
         renderUserDashboard();
-    } else if (pathName.includes("admin-dashboard.html")) {
+    } else if (pathName.includes("admin-dashboard.html") || pathName.endsWith("/admin-dashboard/")) {
         renderAdminDashboard();
-    } else if (pathName.includes("user-management.html")) {
+    } else if (pathName.includes("user-management.html") || pathName.endsWith("/user-management/")) {
+        const searchInput = document.getElementById("admin-search-users");
+        if (searchInput) {
+            searchInput.addEventListener("input", (e) => {
+                searchQuery = e.target.value.toLowerCase().trim();
+                renderUserManagement();
+            });
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        const filterParam = urlParams.get('filter');
+        if (filterParam) {
+            currentFilter = filterParam;
+            setTimeout(() => {
+                const activeBtn = Array.from(document.querySelectorAll('.filter-btn'))
+                    .find(btn => btn.getAttribute('onclick').includes(`'${filterParam}'`));
+                if (activeBtn) {
+                    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                    activeBtn.classList.add('active');
+                }
+            }, 100);
+        }
         renderUserManagement();
-    } else if (pathName.includes("upload-files.html")) {
+    } else if (pathName.includes("upload-files.html") || pathName.endsWith("/upload-files/")) {
         setupFileUploader();
-    } else if (pathName.includes("messages.html")) {
+    } else if (pathName.includes("messages.html") || pathName.endsWith("/messages/")) {
         setupMessagesSystem();
-    } else if (pathName.includes("edit-profile.html")) {
+    } else if (pathName.includes("edit-profile.html") || pathName.endsWith("/edit-profile/")) {
         setupEditProfileForm();
-    } else if (pathName.includes("settings.html")) {
+    } else if (pathName.includes("settings.html") || pathName.endsWith("/settings/")) {
         setupSettings();
-    } else if (pathName.includes("activity-logs.html")) {
+    } else if (pathName.includes("activity-logs.html") || pathName.endsWith("/activity-logs/")) {
         renderActivityLogs();
-    } else if (pathName.includes("data-management.html")) {
+    } else if (pathName.includes("data-management.html") || pathName.endsWith("/data-management/")) {
         setupDataManagement();
-    } else if (pathName.includes("reports.html")) {
+    } else if (pathName.includes("reports.html") || pathName.endsWith("/reports/")) {
         renderReportsPage();
-    } else if (pathName.includes("analytics.html")) {
+    } else if (pathName.includes("analytics.html") || pathName.endsWith("/analytics/")) {
         renderAnalyticsPage();
-    } else if (pathName.includes("search.html")) {
+    } else if (pathName.includes("search.html") || pathName.endsWith("/search/")) {
         setupSearchPage();
-    } else if (pathName.includes("history.html")) {
+    } else if (pathName.includes("history.html") || pathName.endsWith("/history/")) {
         renderHistoryPage();
-    } else if (pathName.includes("notifications.html")) {
+    } else if (pathName.includes("notifications.html") || pathName.endsWith("/notifications/")) {
         renderNotificationsPage();
-    } else if (pathName.includes("profile.html")) {
+    } else if (pathName.includes("profile.html") || pathName.endsWith("/profile/") || (pathName.includes("/profile/") && !pathName.includes("/edit-profile/"))) {
         renderProfilePage();
-    } else if (pathName.includes("feedback.html")) {
+    } else if (pathName.includes("feedback.html") || pathName.endsWith("/feedback/")) {
         setupFeedbackForm();
-    } else if (pathName.includes("help-center.html")) {
+    } else if (pathName.includes("help-center.html") || pathName.endsWith("/help-center/")) {
         setupHelpCenter();
     }
 });
@@ -224,6 +302,9 @@ function renderRecentActivities(userId) {
     });
 }
 
+let currentFilter = 'all';
+let searchQuery = '';
+
 // Dynamic dashboard loader for System Admin
 function renderAdminDashboard() {
     checkAuthentication("admin");
@@ -271,20 +352,33 @@ function renderAdminDashboard() {
 }
 
 function renderRecentUsers() {
-    const users = JSON.parse(localStorage.getItem("erp_users") || "[]").filter(u => u.role !== "admin");
+    const users = JSON.parse(localStorage.getItem("erp_users") || "[]")
+        .filter(u => u.role !== "admin" && u.status === "pending");
     const tbody = document.getElementById("recent-users-table");
     if (!tbody) return;
     
     tbody.innerHTML = "";
+    
+    const statPending = document.getElementById("admin-stat-pending");
+    if (statPending) {
+        statPending.textContent = users.length;
+    }
+    
+    if (users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">No pending candidate applications.</td></tr>`;
+        return;
+    }
+    
     users.slice(0, 5).forEach(u => {
         const tr = document.createElement("tr");
+        tr.style.transition = "all 0.3s ease";
         tr.innerHTML = `
             <td>
                 <div class="d-flex align-items-center gap-3">
                     <img src="${u.avatar}" class="rounded-circle" width="36" height="36" alt="">
                     <div>
-                        <div class="fw-bold">${u.full_name || u.username}</div>
-                        <div class="small text-muted">${u.email}</div>
+                        <div class="fw-bold text-white">${u.full_name || u.username}</div>
+                        <div class="small text-secondary">${u.email}</div>
                     </div>
                 </div>
             </td>
@@ -301,57 +395,247 @@ function renderRecentUsers() {
 
 // Global user management helpers
 window.changeUserStatus = function(userId, newStatus) {
-    const users = JSON.parse(localStorage.getItem("erp_users") || "[]");
+    // Optimistic UI updates
+    let users = JSON.parse(localStorage.getItem("erp_users") || "[]");
     const userIndex = users.findIndex(u => u.id === userId);
-    
     if (userIndex !== -1) {
         users[userIndex].status = newStatus;
         localStorage.setItem("erp_users", JSON.stringify(users));
-        showToast(`User status updated to ${newStatus}`, "success");
         
-        // Add log
-        addActivityLog(userId, `Profile marked ${newStatus}`);
-        
-        // Add notification
-        addNotification(userId, `Application status updated`, `Your internship application has been marked as ${newStatus}.`, newStatus === 'approved' ? 'success' : 'danger');
-        
-        // Refresh appropriate view
-        if (window.location.pathname.includes("admin-dashboard.html")) {
+        if (window.location.pathname.includes("admin-dashboard.html") || window.location.pathname.endsWith("/admin-dashboard/")) {
             renderAdminDashboard();
-        } else if (window.location.pathname.includes("user-management.html")) {
+        } else if (window.location.pathname.includes("user-management.html") || window.location.pathname.endsWith("/user-management/")) {
             renderUserManagement();
         }
     }
+    
+    fetch("/erp/admin/api/users/action/", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            user_id: userId,
+            action: newStatus === 'approved' ? 'approve' : 'reject'
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, "success");
+        } else {
+            showToast(data.message || "Failed to update user status", "danger");
+        }
+    })
+    .catch(err => {
+        showToast("Error updating user status on server.", "danger");
+        console.error(err);
+    });
 };
 
-function addActivityLog(userId, action) {
-    const logs = JSON.parse(localStorage.getItem("erp_logs") || "[]");
-    const newLog = {
-        id: logs.length + 1,
-        user_id: userId,
-        action: action,
-        ip_address: "127.0.0.1",
-        user_agent: navigator.userAgent,
-        timestamp: new Date().toISOString()
-    };
-    logs.unshift(newLog);
-    localStorage.setItem("erp_logs", JSON.stringify(logs));
-}
+window.toggleAccountStatus = function(userId, currentIsActive) {
+    const action = currentIsActive ? 'disable' : 'enable';
+    
+    // Optimistic UI update
+    const users = JSON.parse(localStorage.getItem("erp_users") || "[]");
+    const idx = users.findIndex(usr => usr.id === userId);
+    if (idx !== -1) {
+        users[idx].is_active = !currentIsActive;
+        localStorage.setItem("erp_users", JSON.stringify(users));
+        renderUserManagement();
+    }
+    
+    fetch("/erp/admin/api/users/action/", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            user_id: userId,
+            action: action
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, "success");
+        } else {
+            showToast(data.message || "Failed to update account status", "danger");
+        }
+    })
+    .catch(err => {
+        showToast("Error updating status on server.", "danger");
+        console.error(err);
+    });
+};
 
-function addNotification(userId, title, message, level) {
-    const notifications = JSON.parse(localStorage.getItem("erp_notifications") || "[]");
-    const newNotif = {
-        id: notifications.length + 1,
-        user_id: userId,
-        title: title,
-        message: message,
-        level: level,
-        is_read: false,
-        created_at: new Date().toISOString()
-    };
-    notifications.unshift(newNotif);
-    localStorage.setItem("erp_notifications", JSON.stringify(notifications));
-}
+window.resetPasswordModal = function(userId) {
+    const users = JSON.parse(localStorage.getItem("erp_users") || "[]");
+    const u = users.find(usr => usr.id === userId);
+    if (!u) return;
+    
+    const targetName = u.full_name || u.username;
+    
+    const modalHtml = `
+        <div class="modal fade show d-block" id="resetPasswordModal" tabindex="-1" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 1050;">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content glass-panel p-4" style="border: 1px solid var(--card-hover-border)">
+                    <div class="modal-header border-0 pb-0">
+                        <h4 class="modal-title text-white fw-bold">Reset Password</h4>
+                        <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('resetPasswordModal').remove()"></button>
+                    </div>
+                    <div class="modal-body py-3">
+                        <p class="text-secondary small">Set a new password for candidate <strong>${targetName}</strong>.</p>
+                        <form id="resetPasswordForm">
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small">New Password</label>
+                                <input type="password" class="form-control form-control-premium" id="m-new-password" required minlength="6" placeholder="At least 6 characters">
+                            </div>
+                            <div class="text-end">
+                                <button type="button" class="btn btn-secondary-premium btn-sm me-2" onclick="document.getElementById('resetPasswordModal').remove()">Cancel</button>
+                                <button type="submit" class="btn btn-premium btn-sm">Reset Password</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    document.getElementById("resetPasswordForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const newPassword = document.getElementById("m-new-password").value;
+        
+        fetch("/erp/admin/api/users/action/", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                action: 'reset_password',
+                password: newPassword
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, "success");
+                document.getElementById('resetPasswordModal').remove();
+            } else {
+                showToast(data.message || "Failed to reset password", "danger");
+            }
+        })
+        .catch(err => {
+            showToast("Error resetting password on server.", "danger");
+            console.error(err);
+        });
+    });
+};
+
+window.createNewUserModal = function() {
+    const modalHtml = `
+        <div class="modal fade show d-block" id="createUserModal" tabindex="-1" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 1050;">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content glass-panel p-4" style="border: 1px solid var(--card-hover-border)">
+                    <div class="modal-header border-0 pb-0">
+                        <h4 class="modal-title text-white fw-bold">Create Candidate Profile</h4>
+                        <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('createUserModal').remove()"></button>
+                    </div>
+                    <div class="modal-body py-3">
+                        <form id="createUserForm">
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small">Username</label>
+                                <input type="text" class="form-control form-control-premium" id="c-username" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small">Email</label>
+                                <input type="email" class="form-control form-control-premium" id="c-email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small">Full Name</label>
+                                <input type="text" class="form-control form-control-premium" id="c-fullname" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small">Track</label>
+                                <select class="form-select form-control-premium" id="c-track" required>
+                                    <option value="Software Engineering">Software Engineering</option>
+                                    <option value="UI/UX Design">UI/UX Design</option>
+                                    <option value="Data Analytics">Data Analytics</option>
+                                </select>
+                            </div>
+                            <div class="text-end">
+                                <button type="button" class="btn btn-secondary-premium btn-sm me-2" onclick="document.getElementById('createUserModal').remove()">Cancel</button>
+                                <button type="submit" class="btn btn-premium btn-sm">Add User</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    document.getElementById("createUserForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const uname = document.getElementById("c-username").value.trim().toLowerCase();
+        const email = document.getElementById("c-email").value.trim();
+        const fname = document.getElementById("c-fullname").value.trim();
+        const track = document.getElementById("c-track").value;
+        
+        fetch("/erp/admin/api/users/action/", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                action: 'create',
+                username: uname,
+                email: email,
+                fullname: fname,
+                track: track
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, "success");
+                document.getElementById('createUserModal').remove();
+                
+                const users = JSON.parse(localStorage.getItem("erp_users") || "[]");
+                users.push({
+                    id: users.length + 1000,
+                    username: uname,
+                    email: email,
+                    role: "user",
+                    track: track,
+                    status: "pending",
+                    full_name: fname,
+                    is_active: true,
+                    completion_percentage: 42,
+                    avatar: "/media/profile_pictures/default-avatar.png",
+                    date_joined: new Date().toISOString(),
+                    last_login: ""
+                });
+                localStorage.setItem("erp_users", JSON.stringify(users));
+                renderUserManagement();
+            } else {
+                showToast(data.message || "Failed to create candidate", "danger");
+            }
+        })
+        .catch(err => {
+            showToast("Error creating candidate on server.", "danger");
+            console.error(err);
+        });
+    });
+};
 
 // Render dynamic User CRUD List (Admin Panel)
 function renderUserManagement() {
@@ -359,33 +643,97 @@ function renderUserManagement() {
     const tbody = document.getElementById("users-list");
     if (!tbody) return;
     
-    const users = JSON.parse(localStorage.getItem("erp_users") || "[]").filter(u => u.role !== "admin");
-    tbody.innerHTML = "";
+    let users = JSON.parse(localStorage.getItem("erp_users") || "[]").filter(u => u.role !== "admin");
     
+    // Filters
+    if (currentFilter === 'pending') {
+        users = users.filter(u => u.status === 'pending');
+    } else if (currentFilter === 'approved') {
+        users = users.filter(u => u.status === 'approved');
+    } else if (currentFilter === 'rejected') {
+        users = users.filter(u => u.status === 'rejected');
+    } else if (currentFilter === 'active') {
+        users = users.filter(u => u.is_active === true);
+    } else if (currentFilter === 'disabled') {
+        users = users.filter(u => u.is_active === false);
+    }
+    
+    // Search
+    if (searchQuery) {
+        users = users.filter(u => {
+            const name = (u.full_name || '').toLowerCase();
+            const email = (u.email || '').toLowerCase();
+            const track = (u.track || '').toLowerCase();
+            const role = (u.role || '').toLowerCase();
+            const status = (u.status || '').toLowerCase();
+            const completion = (u.completion_percentage !== undefined ? u.completion_percentage.toString() : '42');
+            
+            return name.includes(searchQuery) ||
+                   email.includes(searchQuery) ||
+                   track.includes(searchQuery) ||
+                   role.includes(searchQuery) ||
+                   status.includes(searchQuery) ||
+                   completion.includes(searchQuery);
+        });
+    }
+    
+    tbody.innerHTML = "";
     if (users.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No users found in database.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" class="text-center text-muted py-4">No matching records found in database.</td></tr>`;
         return;
     }
     
     users.forEach(u => {
         const tr = document.createElement("tr");
+        const dateJoined = u.date_joined ? new Date(u.date_joined).toLocaleDateString() : 'N/A';
+        const lastLogin = u.last_login ? new Date(u.last_login).toLocaleDateString() : 'Never';
+        const completionVal = u.completion_percentage !== undefined ? u.completion_percentage : 42;
+        
+        const activeBadge = u.is_active ? 
+            `<span class="badge bg-success-bg text-success border border-success" style="font-size:0.75rem; padding:4px 8px;">Active</span>` :
+            `<span class="badge bg-danger-bg text-danger border border-danger" style="font-size:0.75rem; padding:4px 8px;">Disabled</span>`;
+            
         tr.innerHTML = `
             <td>${u.id}</td>
             <td>
                 <div class="d-flex align-items-center gap-3">
-                    <img src="${u.avatar}" class="rounded-circle" width="36" height="36">
-                    <div>
-                        <div class="fw-bold">${u.full_name || u.username}</div>
-                        <div class="small text-muted">${u.email}</div>
+                    <img src="${u.avatar}" class="rounded-circle border border-secondary" width="36" height="36" alt="">
+                    <div class="fw-bold text-white">${u.full_name || u.username}</div>
+                </div>
+            </td>
+            <td><span class="small text-secondary">${u.email}</span></td>
+            <td><span class="badge bg-secondary" style="font-size:0.7rem;">${u.role.toUpperCase()}</span></td>
+            <td><span class="small text-white">${u.track || 'Not Assigned'}</span></td>
+            <td><span class="badge-status status-${u.status}">${u.status}</span></td>
+            <td>${activeBadge}</td>
+            <td><span class="small text-secondary">${dateJoined}</span></td>
+            <td><span class="small text-secondary">${lastLogin}</span></td>
+            <td>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small text-white fw-bold">${completionVal}%</span>
+                    <div class="progress-premium" style="width: 60px; height: 6px;">
+                        <div class="progress-bar" style="width: ${completionVal}%;"></div>
                     </div>
                 </div>
             </td>
-            <td>${u.track || "N/A"}</td>
-            <td><span class="badge-status status-${u.status}">${u.status}</span></td>
             <td>
-                <button class="btn btn-sm btn-outline-info me-1" onclick="viewUserProfile(${u.id})"><i class="bi bi-eye"></i></button>
-                <button class="btn btn-sm btn-outline-primary me-1" onclick="editUserModal(${u.id})"><i class="bi bi-pencil"></i></button>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${u.id})"><i class="bi bi-trash"></i></button>
+                <div class="dropdown">
+                    <button class="btn btn-secondary-premium btn-sm dropdown-toggle py-1 px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Actions
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark glass-panel" style="border:1px solid var(--card-border);">
+                        <li><a class="dropdown-item" href="#" onclick="editUserModal(${u.id})"><i class="bi bi-pencil me-2 text-primary"></i> Edit User</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="toggleAccountStatus(${u.id}, ${u.is_active})"><i class="bi ${u.is_active ? 'bi-shield-slash-fill text-warning' : 'bi-shield-fill-check text-success'} me-2"></i> ${u.is_active ? 'Disable Account' : 'Enable Account'}</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="resetPasswordModal(${u.id})"><i class="bi bi-key-fill me-2 text-info"></i> Reset Password</a></li>
+                        <hr class="dropdown-divider border-secondary">
+                        <li><a class="dropdown-item" href="#" onclick="viewUserDetailsModal(${u.id}, 'profile')"><i class="bi bi-person-fill me-2"></i> View Profile</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="viewUserDetailsModal(${u.id}, 'uploads')"><i class="bi bi-file-earmark-arrow-up-fill me-2"></i> View Uploads</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="viewUserDetailsModal(${u.id}, 'reports')"><i class="bi bi-file-earmark-bar-graph-fill me-2"></i> View Reports</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="viewUserDetailsModal(${u.id}, 'notifications')"><i class="bi bi-bell-fill me-2"></i> View Notifications</a></li>
+                        <hr class="dropdown-divider border-secondary">
+                        <li><a class="dropdown-item" href="#" onclick="deleteUser(${u.id})"><i class="bi bi-trash-fill me-2 text-danger"></i> Delete User</a></li>
+                    </ul>
+                </div>
             </td>
         `;
         tbody.appendChild(tr);
@@ -394,18 +742,277 @@ function renderUserManagement() {
 
 // Admin CRUD functions
 window.deleteUser = function(userId) {
-    if (confirm("Are you sure you want to delete this user from database?")) {
-        let users = JSON.parse(localStorage.getItem("erp_users") || "[]");
-        users = users.filter(u => u.id !== userId);
-        localStorage.setItem("erp_users", JSON.stringify(users));
-        showToast("User deleted from database", "danger");
-        renderUserManagement();
-    }
+    const users = JSON.parse(localStorage.getItem("erp_users") || "[]");
+    const u = users.find(usr => usr.id === userId);
+    if (!u) return;
+    
+    const targetName = u.full_name || u.username;
+    
+    const modalHtml = `
+        <div class="modal fade show d-block" id="deleteConfirmModal" tabindex="-1" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 1060;">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content glass-panel p-4" style="border: 1px solid var(--danger);">
+                    <div class="modal-header border-0 pb-0">
+                        <h4 class="modal-title text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i> Delete User?</h4>
+                        <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('deleteConfirmModal').remove()"></button>
+                    </div>
+                    <div class="modal-body py-3">
+                        <p class="text-white">Are you sure you want to permanently remove <strong>${targetName}</strong>?</p>
+                        <p class="text-secondary small">This action cannot be undone. This will delete their profile, files, notifications, active sessions, and invalidate login credentials.</p>
+                    </div>
+                    <div class="modal-footer border-0 pt-0 justify-content-end">
+                        <button type="button" class="btn btn-secondary-premium btn-sm me-2" onclick="document.getElementById('deleteConfirmModal').remove()">Cancel</button>
+                        <button type="button" class="btn btn-danger btn-sm" id="confirm-delete-btn">Delete User</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    document.getElementById("confirm-delete-btn").addEventListener("click", () => {
+        let usersList = JSON.parse(localStorage.getItem("erp_users") || "[]");
+        usersList = usersList.filter(usr => usr.id !== userId);
+        localStorage.setItem("erp_users", JSON.stringify(usersList));
+        
+        document.getElementById('deleteConfirmModal').remove();
+        
+        if (window.location.pathname.includes("user-management.html") || window.location.pathname.endsWith("/user-management/")) {
+            renderUserManagement();
+        } else if (window.location.pathname.includes("admin-dashboard.html") || window.location.pathname.endsWith("/admin-dashboard/")) {
+            renderAdminDashboard();
+        }
+        
+        fetch("/erp/admin/api/users/delete/", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ user_id: userId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, "success");
+            } else {
+                showToast(data.message || "Failed to delete user", "danger");
+            }
+        })
+        .catch(err => {
+            showToast("Error executing deletion on server.", "danger");
+            console.error(err);
+        });
+    });
 };
 
-window.viewUserProfile = function(userId) {
-    // Redirect to profile page with query param
-    window.location.href = `profile.html?id=${userId}`;
+window.viewUserDetailsModal = function(userId, activeTab = 'profile') {
+    fetch(`/erp/admin/api/users/${userId}/details/`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                showToast(data.message || "Failed to fetch user details", "danger");
+                return;
+            }
+            
+            const u = data.user;
+            const files = data.files || [];
+            const notifications = data.notifications || [];
+            const logs = data.logs || [];
+            const reports = data.reports || [];
+            
+            const modalHtml = `
+                <div class="modal fade show d-block" id="userDetailsModal" tabindex="-1" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 1050;">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content glass-panel p-4" style="border: 1px solid var(--card-hover-border);">
+                            <div class="modal-header border-0 pb-2">
+                                <h4 class="modal-title text-white fw-bold"><i class="bi bi-person-circle text-primary me-2"></i> Candidate Workspace</h4>
+                                <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('userDetailsModal').remove()"></button>
+                            </div>
+                            <div class="modal-body pt-1">
+                                <ul class="nav nav-tabs border-secondary mb-3" id="detailsTab" role="tablist">
+                                    <li class="nav-item">
+                                        <button class="nav-link text-white bg-transparent border-0 py-2 px-3 ${activeTab === 'profile' ? 'active border-bottom border-primary fw-bold text-primary' : 'text-secondary'}" onclick="switchDetailsTab('profile')">Profile</button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link text-white bg-transparent border-0 py-2 px-3 ${activeTab === 'uploads' ? 'active border-bottom border-primary fw-bold text-primary' : 'text-secondary'}" onclick="switchDetailsTab('uploads')">Uploads (${files.length})</button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link text-white bg-transparent border-0 py-2 px-3 ${activeTab === 'notifications' ? 'active border-bottom border-primary fw-bold text-primary' : 'text-secondary'}" onclick="switchDetailsTab('notifications')">Notifications (${notifications.length})</button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link text-white bg-transparent border-0 py-2 px-3 ${activeTab === 'reports' ? 'active border-bottom border-primary fw-bold text-primary' : 'text-secondary'}" onclick="switchDetailsTab('reports')">Reports (${reports.length})</button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link text-white bg-transparent border-0 py-2 px-3 ${activeTab === 'logs' ? 'active border-bottom border-primary fw-bold text-primary' : 'text-secondary'}" onclick="switchDetailsTab('logs')">System Logs (${logs.length})</button>
+                                    </li>
+                                </ul>
+                                
+                                <div class="tab-content text-white" id="detailsTabContent" style="max-height: 400px; overflow-y: auto;">
+                                    <div class="tab-pane fade ${activeTab === 'profile' ? 'show active' : ''}" id="details-profile">
+                                        <div class="d-flex align-items-center gap-4 mb-4">
+                                            <img src="${u.avatar}" class="rounded-circle border border-primary border-3" width="90" height="90">
+                                            <div>
+                                                <h3 class="fw-bold mb-0 text-white">${u.full_name || u.username}</h3>
+                                                <div class="text-secondary small mb-2">${u.email}</div>
+                                                <span class="badge bg-secondary me-2">Role: ${u.role.toUpperCase()}</span>
+                                                <span class="badge-status status-${u.status}">Application: ${u.status.toUpperCase()}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <div class="p-3 bg-tertiary rounded">
+                                                    <div class="text-secondary small">Internship Track</div>
+                                                    <div class="fw-bold text-white">${u.track || 'N/A'}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="p-3 bg-tertiary rounded">
+                                                    <div class="text-secondary small">Academic Background</div>
+                                                    <div class="fw-bold text-white">${u.academic || 'N/A'}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="p-3 bg-tertiary rounded">
+                                                    <div class="text-secondary small">Phone Number</div>
+                                                    <div class="fw-bold text-white">${u.phone || 'N/A'}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="p-3 bg-tertiary rounded">
+                                                    <div class="text-secondary small">Skills Specialization</div>
+                                                    <div class="fw-bold text-white text-truncate">${u.skills || 'N/A'}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="p-3 bg-tertiary rounded">
+                                                    <div class="text-secondary small">Biographical Summary</div>
+                                                    <div class="text-white small" style="white-space: pre-line;">${u.bio || 'No bio provided.'}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="tab-pane fade ${activeTab === 'uploads' ? 'show active' : ''}" id="details-uploads">
+                                        <div class="table-responsive">
+                                            <table class="table table-dark table-hover mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>File Name</th>
+                                                        <th>Size</th>
+                                                        <th>Uploaded At</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${files.length === 0 ? '<tr><td colspan="4" class="text-center text-secondary small py-4">No uploaded files.</td></tr>' : files.map(f => `
+                                                        <tr>
+                                                            <td><i class="bi bi-file-earmark-arrow-up text-primary me-2"></i> ${f.name}</td>
+                                                            <td>${(f.size / 1024).toFixed(1)} KB</td>
+                                                            <td>${new Date(f.uploaded_at).toLocaleDateString()}</td>
+                                                            <td><a href="${f.url}" download class="btn btn-sm btn-outline-primary py-0 px-2"><i class="bi bi-download"></i></a></td>
+                                                        </tr>
+                                                    `).join('')}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="tab-pane fade ${activeTab === 'notifications' ? 'show active' : ''}" id="details-notifications">
+                                        <div class="d-flex flex-column gap-2">
+                                            ${notifications.length === 0 ? '<div class="text-center text-secondary small py-4">No notifications recorded.</div>' : notifications.map(n => `
+                                                <div class="p-3 bg-tertiary rounded border-start border-3 ${n.level === 'success' ? 'border-success' : n.level === 'warning' ? 'border-warning' : n.level === 'danger' ? 'border-danger' : 'border-info'}">
+                                                    <div class="d-flex justify-content-between">
+                                                        <strong class="text-white">${n.title}</strong>
+                                                        <span class="text-secondary" style="font-size: 0.75rem;">${new Date(n.created_at).toLocaleString()}</span>
+                                                    </div>
+                                                    <p class="mb-0 text-secondary small mt-1">${n.message}</p>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="tab-pane fade ${activeTab === 'reports' ? 'show active' : ''}" id="details-reports">
+                                        <div class="table-responsive">
+                                            <table class="table table-dark table-hover mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Report Name</th>
+                                                        <th>Description</th>
+                                                        <th>Date Generated</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${reports.length === 0 ? '<tr><td colspan="3" class="text-center text-secondary small py-4">No reports assigned.</td></tr>' : reports.map(r => `
+                                                        <tr>
+                                                            <td><i class="bi bi-file-pdf text-danger me-2"></i> ${r.title}</td>
+                                                            <td>${r.description}</td>
+                                                            <td>${new Date(r.created_at).toLocaleDateString()}</td>
+                                                        </tr>
+                                                    `).join('')}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="tab-pane fade ${activeTab === 'logs' ? 'show active' : ''}" id="details-logs">
+                                        <div class="table-responsive">
+                                            <table class="table table-dark table-hover mb-0" style="font-size: 0.85rem;">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Action Triggered</th>
+                                                        <th>IP Connection</th>
+                                                        <th>Timestamp</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${logs.length === 0 ? '<tr><td colspan="3" class="text-center text-secondary small py-4">No activity logged.</td></tr>' : logs.map(l => `
+                                                        <tr>
+                                                            <td>${l.action}</td>
+                                                            <td>${l.ip_address}</td>
+                                                            <td>${new Date(l.timestamp).toLocaleString()}</td>
+                                                        </tr>
+                                                    `).join('')}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            window.switchDetailsTab = function(tabName) {
+                document.querySelectorAll('#detailsTab button').forEach(btn => {
+                    btn.className = 'nav-link text-white bg-transparent border-0 py-2 px-3 text-secondary';
+                });
+                
+                const selBtn = Array.from(document.querySelectorAll('#detailsTab button'))
+                    .find(btn => btn.getAttribute('onclick').includes(`'${tabName}'`));
+                if (selBtn) {
+                    selBtn.className = 'nav-link text-white bg-transparent border-0 py-2 px-3 active border-bottom border-primary fw-bold text-primary';
+                }
+                
+                document.querySelectorAll('#detailsTabContent > div').forEach(pane => {
+                    pane.classList.remove('show', 'active');
+                });
+                
+                const pane = document.getElementById(`details-${tabName}`);
+                if (pane) {
+                    pane.classList.add('show', 'active');
+                }
+            };
+        })
+        .catch(err => {
+            showToast("Failed to fetch candidate details.", "danger");
+            console.error(err);
+        });
 };
 
 window.editUserModal = function(userId) {
@@ -413,17 +1020,24 @@ window.editUserModal = function(userId) {
     const u = users.find(usr => usr.id === userId);
     if (!u) return;
     
-    // Dynamic overlay form injector
     const modalHtml = `
-        <div class="modal fade show d-block" id="editUserModal" tabindex="-1" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+        <div class="modal fade show d-block" id="editUserModal" tabindex="-1" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 1050;">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content glass-panel p-4" style="border: 1px solid var(--card-hover-border)">
                     <div class="modal-header border-0 pb-0">
-                        <h4 class="modal-title">Edit User (#${u.id})</h4>
+                        <h4 class="modal-title text-white">Edit User (#${u.id})</h4>
                         <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('editUserModal').remove()"></button>
                     </div>
                     <div class="modal-body">
                         <form id="editUserAdminForm">
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small">Username</label>
+                                <input type="text" class="form-control form-control-premium" id="m-username" value="${u.username || ''}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small">Email</label>
+                                <input type="email" class="form-control form-control-premium" id="m-email" value="${u.email || ''}" required>
+                            </div>
                             <div class="mb-3">
                                 <label class="form-label text-secondary small">Full Name</label>
                                 <input type="text" class="form-control form-control-premium" id="m-fullname" value="${u.full_name || ''}">
@@ -431,18 +1045,30 @@ window.editUserModal = function(userId) {
                             <div class="mb-3">
                                 <label class="form-label text-secondary small">Track</label>
                                 <select class="form-select form-control-premium" id="m-track">
+                                    <option value="" ${!u.track ? 'selected' : ''}>Not Assigned</option>
                                     <option value="Software Engineering" ${u.track === 'Software Engineering' ? 'selected' : ''}>Software Engineering</option>
                                     <option value="UI/UX Design" ${u.track === 'UI/UX Design' ? 'selected' : ''}>UI/UX Design</option>
                                     <option value="Data Analytics" ${u.track === 'Data Analytics' ? 'selected' : ''}>Data Analytics</option>
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label text-secondary small">Status</label>
+                                <label class="form-label text-secondary small">Role</label>
+                                <select class="form-select form-control-premium" id="m-role">
+                                    <option value="user" ${u.role === 'user' ? 'selected' : ''}>Intern/Candidate</option>
+                                    <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Administrator</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small">Application Status</label>
                                 <select class="form-select form-control-premium" id="m-status">
                                     <option value="pending" ${u.status === 'pending' ? 'selected' : ''}>Pending</option>
                                     <option value="approved" ${u.status === 'approved' ? 'selected' : ''}>Approved</option>
                                     <option value="rejected" ${u.status === 'rejected' ? 'selected' : ''}>Rejected</option>
                                 </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small">Completion %</label>
+                                <input type="number" class="form-control form-control-premium" id="m-completion" value="${u.completion_percentage !== undefined ? u.completion_percentage : 42}" min="0" max="100">
                             </div>
                             <div class="text-end">
                                 <button type="button" class="btn btn-secondary-premium me-2" onclick="document.getElementById('editUserModal').remove()">Cancel</button>
@@ -459,23 +1085,61 @@ window.editUserModal = function(userId) {
     
     document.getElementById("editUserAdminForm").addEventListener("submit", (e) => {
         e.preventDefault();
-        const updatedFullName = document.getElementById("m-fullname").value;
-        const updatedTrack = document.getElementById("m-track").value;
-        const updatedStatus = document.getElementById("m-status").value;
+        const username = document.getElementById("m-username").value.trim();
+        const email = document.getElementById("m-email").value.trim();
+        const fullname = document.getElementById("m-fullname").value.trim();
+        const track = document.getElementById("m-track").value;
+        const role = document.getElementById("m-role").value;
+        const status = document.getElementById("m-status").value;
+        const completion = document.getElementById("m-completion").value;
         
+        // Optimistic UI updates
         const usersList = JSON.parse(localStorage.getItem("erp_users") || "[]");
         const idx = usersList.findIndex(usr => usr.id === u.id);
-        
         if (idx !== -1) {
-            usersList[idx].full_name = updatedFullName;
-            usersList[idx].track = updatedTrack;
-            usersList[idx].status = updatedStatus;
-            
+            usersList[idx].username = username;
+            usersList[idx].email = email;
+            usersList[idx].full_name = fullname;
+            usersList[idx].track = track;
+            usersList[idx].role = role;
+            usersList[idx].status = status;
+            usersList[idx].completion_percentage = parseInt(completion);
             localStorage.setItem("erp_users", JSON.stringify(usersList));
-            showToast("User updated successfully", "success");
+            
             document.getElementById('editUserModal').remove();
             renderUserManagement();
         }
+        
+        fetch("/erp/admin/api/users/action/", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                user_id: u.id,
+                action: 'edit',
+                username: username,
+                email: email,
+                fullname: fullname,
+                track: track,
+                role: role,
+                status: status,
+                completion_percentage: completion
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, "success");
+            } else {
+                showToast(data.message || "Failed to edit user", "danger");
+            }
+        })
+        .catch(err => {
+            showToast("Error updating user details on server.", "danger");
+            console.error(err);
+        });
     });
 };
 

@@ -29,6 +29,8 @@
     <!-- Filter Block -->
     <div class="glass-panel p-4 mb-4">
         <form method="GET" class="row g-3">
+{% csrf_token %}
+
             <div class="col-md-5">
                 <label for="search" class="form-label text-secondary small">Search Applicant Details</label>
                 <div class="input-group">

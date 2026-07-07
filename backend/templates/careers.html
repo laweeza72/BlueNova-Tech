@@ -85,6 +85,8 @@
                 <div class="glass-panel p-5">
                     <h3 class="text-white mb-4">Submit Application</h3>
                     <form id="careerForm" onsubmit="event.preventDefault(); showToast('Application submitted successfully!', 'success'); this.reset();">
+{% csrf_token %}
+
                         {% csrf_token %}
                         <div class="mb-3">
                             <label class="form-label text-secondary small">Target Role</label>

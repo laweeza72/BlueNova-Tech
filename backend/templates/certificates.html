@@ -24,6 +24,8 @@
                 <!-- Search panel -->
                 <div class="glass-panel p-4 mb-4 text-center">
                     <form id="verifyForm">
+{% csrf_token %}
+
                         <div class="input-group">
                             <input type="text" id="cert-id-input" class="form-control form-control-premium text-white py-3" placeholder="e.g. BNT-2026-X839" required>
                             <button type="submit" class="btn btn-premium px-4"><i class="bi bi-search me-1"></i> Verify</button>

@@ -33,6 +33,7 @@ def get_erp_context(request):
             academic_background = p.academic_background
             skills = p.skills
             avatar = p.profile_picture.url if p.profile_picture else "/media/profile_pictures/default-avatar.png"
+            completion_percentage = p.completion_percentage
         except Profile.DoesNotExist:
             track = ""
             status = "approved" if u.role == 'admin' else "pending"
@@ -42,6 +43,7 @@ def get_erp_context(request):
             academic_background = ""
             skills = ""
             avatar = "/media/profile_pictures/default-avatar.png"
+            completion_percentage = 42
             
         users_list.append({
             'id': u.id,
@@ -57,7 +59,11 @@ def get_erp_context(request):
             'academic_background': academic_background,
             'skills': skills,
             'avatar': avatar,
-            'resume': ""
+            'resume': "",
+            'is_active': u.is_active,
+            'completion_percentage': completion_percentage,
+            'date_joined': u.date_joined.isoformat() if u.date_joined else "",
+            'last_login': u.last_login.isoformat() if u.last_login else ""
         })
         
     # Query files
@@ -1339,4 +1345,341 @@ def download_application_resume_view(request, app_id):
     response = HttpResponse(app.resume, content_type='application/octet-stream')
     response['Content-Disposition'] = f'attachment; filename="{os.path.basename(app.resume.name)}"'
     return response
+
+
+from django.contrib.sessions.models import Session
+from django.views.decorators.csrf import csrf_protect
+
+@login_required
+@admin_required
+@csrf_protect
+def admin_user_action(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'POST request required.'}, status=405)
+        
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        data = request.POST
+
+    user_id = data.get('user_id')
+    action = data.get('action')
+    
+    if not action:
+        return JsonResponse({'success': False, 'message': 'Missing action.'}, status=400)
+        
+    admin_name = request.user.profile.full_name if hasattr(request.user, 'profile') and request.user.profile.full_name else request.user.username
+    
+    if action == 'create':
+        username = data.get('username')
+        email = data.get('email')
+        fullname = data.get('fullname')
+        track = data.get('track')
+        
+        if not username or not email or not fullname:
+            return JsonResponse({'success': False, 'message': 'Missing username, email, or fullname.'}, status=400)
+            
+        if User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists():
+            return JsonResponse({'success': False, 'message': 'Username or email already exists.'}, status=400)
+            
+        user = User.objects.create_user(username=username, email=email, password='password', role='user')
+        Profile.objects.create(
+            user=user,
+            full_name=fullname,
+            track=track,
+            status='pending'
+        )
+        Setting.objects.create(user=user, theme='dark')
+        
+        log_action(request.user, f"Admin {admin_name} created candidate user {fullname}.", request)
+        return JsonResponse({'success': True, 'message': f'Candidate {fullname} successfully created.'})
+        
+    if not user_id:
+        return JsonResponse({'success': False, 'message': 'Missing user_id.'}, status=400)
+        
+    user = get_object_or_404(User, id=user_id)
+    profile, _ = Profile.objects.get_or_create(user=user)
+    target_name = profile.full_name if profile.full_name else user.username
+    
+    if action == 'approve':
+        profile.status = 'approved'
+        profile.save()
+        InternshipApplication.objects.filter(user=user).update(status='approved')
+        
+        Notification.objects.create(
+            user=user,
+            title="Application Approved",
+            message="Congratulations! Your internship application has been approved. You can now access your assigned internship track and continue your onboarding process.",
+            level="success"
+        )
+        log_action(request.user, f"Admin {admin_name} approved user {target_name}.", request)
+        return JsonResponse({'success': True, 'message': f'User {target_name} approved successfully.'})
+        
+    elif action == 'reject':
+        profile.status = 'rejected'
+        profile.save()
+        InternshipApplication.objects.filter(user=user).update(status='rejected')
+        
+        Notification.objects.create(
+            user=user,
+            title="Application Rejected",
+            message="We appreciate your interest in BlueNova ERP. Unfortunately, your internship application was not approved at this time.",
+            level="warning"
+        )
+        log_action(request.user, f"Admin {admin_name} rejected user {target_name}.", request)
+        return JsonResponse({'success': True, 'message': f'User {target_name} rejected successfully.'})
+        
+    elif action == 'disable':
+        user.is_active = False
+        user.save()
+        log_action(request.user, f"Admin {admin_name} disabled account for user {target_name}.", request)
+        for session in Session.objects.all():
+            try:
+                if session.get_decoded().get('_auth_user_id') == str(user.id):
+                    session.delete()
+            except Exception:
+                pass
+        return JsonResponse({'success': True, 'message': f'User {target_name} disabled successfully.'})
+        
+    elif action == 'enable':
+        user.is_active = True
+        user.save()
+        log_action(request.user, f"Admin {admin_name} enabled account for user {target_name}.", request)
+        return JsonResponse({'success': True, 'message': f'User {target_name} enabled successfully.'})
+        
+    elif action == 'reset_password':
+        new_password = data.get('password')
+        if not new_password or len(new_password) < 6:
+            return JsonResponse({'success': False, 'message': 'Password must be at least 6 characters.'}, status=400)
+        user.set_password(new_password)
+        user.save()
+        log_action(request.user, f"Admin {admin_name} reset password for {target_name}.", request)
+        return JsonResponse({'success': True, 'message': f'Password for {target_name} reset successfully.'})
+        
+    elif action == 'change_role':
+        new_role = data.get('role')
+        if new_role not in ['admin', 'user']:
+            return JsonResponse({'success': False, 'message': 'Invalid role.'}, status=400)
+        user.role = new_role
+        user.save()
+        log_action(request.user, f"Admin {admin_name} changed role for {target_name} to {new_role}.", request)
+        return JsonResponse({'success': True, 'message': f'Role for {target_name} changed to {new_role}.'})
+        
+    elif action == 'assign_track':
+        new_track = data.get('track')
+        if new_track not in ['Software Engineering', 'UI/UX Design', 'Data Analytics', '']:
+            return JsonResponse({'success': False, 'message': 'Invalid track.'}, status=400)
+        profile.track = new_track
+        profile.save()
+        log_action(request.user, f"Admin {admin_name} assigned track {new_track or 'N/A'} to {target_name}.", request)
+        return JsonResponse({'success': True, 'message': f'Track for {target_name} updated successfully.'})
+        
+    elif action == 'edit':
+        username = data.get('username')
+        email = data.get('email')
+        fullname = data.get('fullname')
+        track = data.get('track')
+        status = data.get('status')
+        is_active = data.get('is_active')
+        role = data.get('role')
+        completion_percentage = data.get('completion_percentage')
+        
+        if username:
+            if User.objects.filter(username=username).exclude(id=user.id).exists():
+                return JsonResponse({'success': False, 'message': 'Username is already taken.'}, status=400)
+            user.username = username
+        if email:
+            if User.objects.filter(email=email).exclude(id=user.id).exists():
+                return JsonResponse({'success': False, 'message': 'Email is already registered.'}, status=400)
+            user.email = email
+        if is_active is not None:
+            user.is_active = bool(is_active)
+        if role:
+            user.role = role
+        user.save()
+        
+        if fullname is not None:
+            profile.full_name = fullname
+        if track is not None:
+            profile.track = track
+        if status:
+            profile.status = status
+            InternshipApplication.objects.filter(user=user).update(status=status)
+        if completion_percentage is not None:
+            profile.completion_percentage = int(completion_percentage)
+        profile.save()
+        
+        log_action(request.user, f"Admin {admin_name} updated account details for {target_name}.", request)
+        return JsonResponse({'success': True, 'message': f'User {target_name} updated successfully.'})
+
+    return JsonResponse({'success': False, 'message': 'Unknown action.'}, status=400)
+
+
+@login_required
+@admin_required
+@csrf_protect
+def admin_user_delete(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'POST request required.'}, status=405)
+        
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        data = request.POST
+        
+    user_id = data.get('user_id')
+    if not user_id:
+        return JsonResponse({'success': False, 'message': 'Missing user_id.'}, status=400)
+        
+    user = get_object_or_404(User, id=user_id)
+    if user.id == request.user.id:
+        return JsonResponse({'success': False, 'message': 'You cannot delete your own admin account.'}, status=400)
+        
+    profile, _ = Profile.objects.get_or_create(user=user)
+    admin_name = request.user.profile.full_name if hasattr(request.user, 'profile') and request.user.profile.full_name else request.user.username
+    target_name = profile.full_name if profile.full_name else user.username
+    
+    # Cascade delete files manually to delete actual media files from storage
+    for file_obj in user.files.all():
+        file_obj.file.delete()
+        file_obj.delete()
+        
+    user.notifications.all().delete()
+    log_action(request.user, f"Admin {admin_name} deleted user {target_name}.", request)
+    
+    # Store deletion context in active sessions of the user before deleting the user
+    for session in Session.objects.all():
+        try:
+            decoded = session.get_decoded()
+            if decoded.get('_auth_user_id') == str(user.id):
+                decoded['account_deleted'] = True
+                decoded['deletion_title'] = "Account Removed"
+                decoded['deletion_message'] = "Your BlueNova ERP account has been removed by the administrator. If you believe this was a mistake, please contact support."
+                session.session_data = Session.objects.encode(decoded)
+                session.save()
+        except Exception:
+            pass
+            
+    user.delete()
+    return JsonResponse({'success': True, 'message': f'User {target_name} permanently deleted.'})
+
+
+@login_required
+@admin_required
+def admin_user_details(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    profile, _ = Profile.objects.get_or_create(user=user)
+    
+    files = []
+    for f in user.files.all():
+        files.append({
+            'name': f.file_name,
+            'size': f.file_size,
+            'uploaded_at': f.uploaded_at.isoformat(),
+            'url': f.file.url
+        })
+        
+    notifications = []
+    for n in user.notifications.all().order_by('-created_at'):
+        notifications.append({
+            'title': n.title,
+            'message': n.message,
+            'level': n.level,
+            'created_at': n.created_at.isoformat(),
+            'is_read': n.is_read
+        })
+        
+    logs = []
+    for l in user.logs.all().order_by('-timestamp')[:10]:
+        logs.append({
+            'action': l.action,
+            'ip_address': l.ip_address,
+            'timestamp': l.timestamp.isoformat()
+        })
+        
+    reports = []
+    for r in user.reports.all().order_by('-created_at'):
+        reports.append({
+            'title': r.title,
+            'description': r.description,
+            'created_at': r.created_at.isoformat()
+        })
+        
+    return JsonResponse({
+        'success': True,
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'role': user.role,
+            'is_active': user.is_active,
+            'full_name': profile.full_name,
+            'track': profile.track,
+            'status': profile.status,
+            'completion_percentage': profile.completion_percentage,
+            'phone': profile.phone,
+            'bio': profile.bio,
+            'academic': profile.academic_background,
+            'skills': profile.skills,
+            'avatar': profile.profile_picture.url if profile.profile_picture else "/media/profile_pictures/default-avatar.png",
+        },
+        'files': files,
+        'notifications': notifications,
+        'logs': logs,
+        'reports': reports
+    })
+
+
+def check_status_api(request):
+    if request.session.get('account_deleted'):
+        title = request.session.get('deletion_title', 'Account Removed')
+        message = request.session.get('deletion_message', '')
+        request.session.flush()
+        return JsonResponse({
+            'status': 'deleted',
+            'title': title,
+            'message': message
+        })
+        
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'anonymous'})
+        
+    try:
+        user = User.objects.get(id=request.user.id)
+    except User.DoesNotExist:
+        request.session.flush()
+        return JsonResponse({
+            'status': 'deleted',
+            'title': 'Account Removed',
+            'message': 'Your account has been removed.'
+        })
+        
+    if not user.is_active:
+        request.session.flush()
+        return JsonResponse({
+            'status': 'disabled',
+            'message': 'Your account has been disabled.'
+        })
+        
+    unread_count = user.notifications.filter(is_read=False).count()
+    return JsonResponse({
+        'status': 'ok',
+        'is_active': user.is_active,
+        'role': user.role,
+        'profile_status': user.profile.status if hasattr(user, 'profile') else 'pending',
+        'unread_count': unread_count
+    })
+
+
+@login_required
+def system_state_api(request):
+    ctx = get_erp_context(request)
+    return JsonResponse({
+        'users': json.loads(ctx['json_users']),
+        'files': json.loads(ctx['json_files']),
+        'notifications': json.loads(ctx['json_notifications']),
+        'messages': json.loads(ctx['json_messages']),
+        'logs': json.loads(ctx['json_logs']),
+        'history': json.loads(ctx['json_history']),
+    })
 

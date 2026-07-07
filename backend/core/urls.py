@@ -19,6 +19,11 @@ urlpatterns = [
     
     # User CRUD
     path('user-management/', views.user_management, name='user_management'),
+    path('admin/api/user-action/', views.admin_user_action, name='admin_user_action'),
+    path('admin/api/user-delete/', views.admin_user_delete, name='admin_user_delete'),
+    path('admin/api/user-details/<int:user_id>/', views.admin_user_details, name='admin_user_details'),
+    path('api/check-status/', views.check_status_api, name='check_status_api'),
+    path('api/system-state/', views.system_state_api, name='system_state_api'),
     
     # Correspondence
     path('messages/', views.messages_view, name='messages'),
@@ -49,4 +54,9 @@ urlpatterns = [
     path('profile/upload-picture/', views.upload_profile_picture, name='upload_profile_picture'),
     path('profile/remove-picture/', views.remove_profile_picture, name='remove_profile_picture'),
     
+    # Custom Admin APIs
+    path('admin/api/users/action/', views.admin_user_action, name='admin_user_action'),
+    path('admin/api/users/delete/', views.admin_user_delete, name='admin_user_delete'),
+    path('admin/api/users/<int:user_id>/details/', views.admin_user_details, name='admin_user_details'),
+    path('api/check-status/', views.check_status_api, name='check_status_api'),
 ]

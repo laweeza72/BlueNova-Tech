@@ -24,6 +24,8 @@
                 </div>
 
                 <form id="applyForm" method="POST" enctype="multipart/form-data" novalidate>
+{% csrf_token %}
+
                     {% csrf_token %}
                     
                     <div id="alertBox" class="alert d-none mb-4" role="alert"></div>

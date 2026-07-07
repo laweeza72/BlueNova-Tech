@@ -23,6 +23,7 @@ class Profile(models.Model):
     skills = models.TextField(blank=True, help_text='Comma separated list of skills')
     academic_background = models.CharField(max_length=255, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    completion_percentage = models.IntegerField(default=42)
 
     def __str__(self):
         return f"{self.user.username}'s Profile"

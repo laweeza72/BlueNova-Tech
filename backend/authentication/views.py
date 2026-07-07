@@ -53,7 +53,7 @@ def login_view(request):
             
         # 2. Check disabled account
         if not user_obj.is_active:
-            return JsonResponse({'success': False, 'message': 'Your account has been disabled. Please contact the administrator.'}, status=400)
+            return JsonResponse({'success': False, 'message': 'Your account has been disabled.'}, status=400)
             
         # 3. Verify password
         user = authenticate(request, username=user_obj.username, password=password_val)

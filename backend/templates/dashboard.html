@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard — BlueNova ERP</title>
+    <title>User Dashboard - BlueNova ERP</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="/static/css/style.css?v=6.0" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -22,21 +22,20 @@
         localStorage.setItem("erp_session", '{{ session_token }}');
     </script>
     {% endif %}
+    
 
     <div class="app-wrapper">
-        <!-- ============================================================
-             SIDEBAR
-             ============================================================ -->
+        <!-- Sidebar Navigation -->
         <aside class="app-sidebar">
             <div class="sidebar-header">
-                <a href="/" class="d-flex align-items-center gap-2 fw-800 text-white text-decoration-none" style="font-family: 'Manrope', sans-serif;">
-                    <i class="bi bi-rocket-takeoff-fill text-primary-green"></i> <span>BlueNova ERP</span>
+                <a href="/erp/dashboard/" class="d-flex align-items-center gap-2 fw-bold text-white text-decoration-none">
+                    <i class="bi bi-rocket-takeoff-fill text-primary"></i> <span>BlueNova ERP</span>
                 </a>
                 <button class="sidebar-toggler sidebar-toggle-btn d-lg-none"><i class="bi bi-x-lg"></i></button>
             </div>
             <ul class="sidebar-menu">
                 <li class="sidebar-item active">
-                    <a href="/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Dashboard</span></a>
+                    <a href="/erp/dashboard/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Dashboard</span></a>
                 </li>
                 <li class="sidebar-item">
                     <a href="/erp/profile/" class="sidebar-link"><i class="bi bi-person-fill"></i> <span>My Profile</span></a>
@@ -51,9 +50,6 @@
                     <a href="/erp/history/" class="sidebar-link"><i class="bi bi-clock-history"></i> <span>History</span></a>
                 </li>
                 <li class="sidebar-item">
-                    <a href="/erp/notifications/" class="sidebar-link"><i class="bi bi-bell-fill"></i> <span>Notifications</span></a>
-                </li>
-                <li class="sidebar-item">
                     <a href="/erp/help-center/" class="sidebar-link"><i class="bi bi-question-circle-fill"></i> <span>Help Center</span></a>
                 </li>
                 <li class="sidebar-item">
@@ -62,24 +58,23 @@
                 <li class="sidebar-item">
                     <a href="{% url 'settings' %}" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a>
                 </li>
-                <li class="sidebar-item mt-auto" style="margin-top: auto !important;">
-                    <a href="/auth/logout/" class="sidebar-link" style="color: var(--danger);"><i class="bi bi-box-arrow-right"></i> <span>Sign Out</span></a>
+                <li class="sidebar-item mt-5">
+                    <a href="/auth/logout/" class="sidebar-link text-danger"><i class="bi bi-box-arrow-right"></i> <span>Sign Out</span></a>
                 </li>
             </ul>
         </aside>
 
-        <!-- ============================================================
-             MAIN CONTENT
-             ============================================================ -->
+        <!-- Main Panel Workspace -->
         <main class="app-content">
             <!-- Top Navbar -->
             <header class="app-navbar">
                 <div class="d-flex align-items-center gap-3">
                     <button class="sidebar-toggler sidebar-toggle-btn d-lg-block text-white" aria-label="Toggle Sidebar"><i class="bi bi-list"></i></button>
                     <form class="d-none d-md-flex" action="/erp/search/" method="GET" id="search-form-nav">
-                        {% csrf_token %}
+{% csrf_token %}
+
                         <div class="input-group">
-                            <input type="text" name="q" class="form-control form-control-premium py-1" style="width: 260px;" placeholder="Search records, files..." aria-label="Search">
+                            <input type="text" name="q" class="form-control form-control-premium py-1" style="width: 240px;" placeholder="Search records, files...">
                             <button type="submit" class="btn btn-premium py-1"><i class="bi bi-search"></i></button>
                         </div>
                     </form>
@@ -91,303 +86,78 @@
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notif-badge" style="font-size: 0.65rem;">0</span>
                     </a>
                     <a href="/erp/profile/" class="d-flex align-items-center gap-2 text-decoration-none">
-                        <img id="user-avatar" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80" class="rounded-circle" width="36" height="36" alt="Profile" style="border: 2px solid var(--card-border);">
+                        <img id="user-avatar" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80" class="rounded-circle" width="36" height="36" alt="">
                     </a>
                 </div>
             </header>
 
-            <!-- ============================================================
-                 DASHBOARD BODY
-                 ============================================================ -->
+            <!-- Dashboard Content Scroll Area -->
             <div class="app-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="text-white mb-1">Hello, <span id="user-fullname" class="gradient-text">Intern</span></h2>
+                        <p class="text-secondary small mb-0">Welcome back to BlueNova Internship ERP workspace.</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="/erp/upload-files/" class="btn btn-premium btn-sm"><i class="bi bi-upload"></i> Upload Tasks</a>
+                        <a href="/erp/reports/" class="btn btn-secondary-premium btn-sm"><i class="bi bi-file-earmark-pdf"></i> View Reports</a>
+                    </div>
+                </div>
 
-                <!-- Welcome Banner -->
-                <div class="glass-panel p-4 p-md-5 mb-4 position-relative overflow-hidden reveal" style="background: linear-gradient(135deg, rgba(0, 200, 83, 0.08) 0%, rgba(0, 230, 118, 0.03) 100%);">
-                    <div class="position-relative" style="z-index: 2;">
-                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                <!-- Stats Grid -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <div class="glass-panel metric-card">
+                            <div class="text-secondary small mb-1">Assigned Specialization Track</div>
+                            <h4 id="user-track" class="text-white mb-2">Track</h4>
+                            <span id="user-status" class="badge-status status-pending">Pending</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="glass-panel metric-card d-flex align-items-center justify-content-between">
                             <div>
-                                <h2 class="text-white mb-2 fw-800" style="font-family: 'Manrope', sans-serif;">
-                                    Welcome back, <span id="user-fullname" class="gradient-text">Intern</span> 👋
-                                </h2>
-                                <p class="text-secondary mb-0">Here's what's happening with your internship today. Keep up the great work!</p>
+                                <div class="text-secondary small mb-1">Uploaded Files</div>
+                                <h2 id="stat-files" class="text-white fw-bold mb-0">0</h2>
                             </div>
-                            <div class="d-flex gap-2 flex-wrap">
-                                <a href="/erp/upload-files/" class="btn btn-premium btn-sm px-4"><i class="bi bi-upload me-1"></i> Upload Tasks</a>
-                                <a href="/erp/reports/" class="btn btn-secondary-premium btn-sm px-4"><i class="bi bi-file-earmark-pdf me-1"></i> View Reports</a>
-                            </div>
+                            <div class="fs-1 text-primary"><i class="bi bi-file-earmark-zip"></i></div>
                         </div>
                     </div>
-                    <div class="hero-shape" style="width: 200px; height: 200px; background: var(--primary); top: -60px; right: -60px; opacity: 0.04;"></div>
-                </div>
-
-                <!-- Stats Grid (4 columns) -->
-                <div class="row g-4 mb-4">
-                    <div class="col-xl-3 col-md-6 reveal" style="transition-delay: 0.05s;">
-                        <div class="glass-panel metric-card">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="feature-icon" style="width: 48px; height: 48px;"><i class="bi bi-mortarboard-fill"></i></div>
-                                <span class="badge-status status-pending" id="user-status">Pending</span>
+                    <div class="col-md-4">
+                        <div class="glass-panel metric-card d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="text-secondary small mb-1">System Alerts</div>
+                                <h2 id="stat-notifications" class="text-white fw-bold mb-0">0</h2>
                             </div>
-                            <div class="text-secondary small mb-1">Assigned Track</div>
-                            <h4 id="user-track" class="text-white mb-0 fw-700">Track</h4>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-md-6 reveal" style="transition-delay: 0.1s;">
-                        <div class="glass-panel metric-card">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="feature-icon" style="width: 48px; height: 48px;"><i class="bi bi-file-earmark-zip"></i></div>
-                            </div>
-                            <div class="text-secondary small mb-1">Uploaded Files</div>
-                            <h3 id="stat-files" class="text-white mb-0 fw-800">0</h3>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-md-6 reveal" style="transition-delay: 0.15s;">
-                        <div class="glass-panel metric-card">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="feature-icon" style="width: 48px; height: 48px;"><i class="bi bi-bell"></i></div>
-                            </div>
-                            <div class="text-secondary small mb-1">System Alerts</div>
-                            <h3 id="stat-notifications" class="text-white mb-0 fw-800">0</h3>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-md-6 reveal" style="transition-delay: 0.2s;">
-                        <div class="glass-panel metric-card">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="feature-icon" style="width: 48px; height: 48px;"><i class="bi bi-trophy-fill"></i></div>
-                            </div>
-                            <div class="text-secondary small mb-1">Completion</div>
-                            <h3 class="text-white mb-0 fw-800">42%</h3>
-                            <div class="progress-premium mt-2">
-                                <div class="progress-bar" data-width="42%" style="width: 0%;"></div>
-                            </div>
+                            <div class="fs-1 text-accent"><i class="bi bi-bell"></i></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Analytics Row -->
-                <div class="row g-4 mb-4">
-                    <!-- Milestone Progress Chart -->
-                    <div class="col-lg-8 reveal">
-                        <div class="glass-panel p-4 h-100">
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <div>
-                                    <h4 class="text-white mb-1 fw-700">Milestone Progress</h4>
-                                    <p class="text-secondary small mb-0">Your weekly performance analytics</p>
-                                </div>
-                                <select class="form-select form-control-premium" style="width: auto; font-size: 0.85rem; padding: 6px 12px;">
-                                    <option>This Month</option>
-                                    <option>Last Month</option>
-                                    <option>All Time</option>
-                                </select>
-                            </div>
-                            <div style="height: 280px; position: relative;">
+                <!-- Analytics and Activities -->
+                <div class="row g-4">
+                    <div class="col-lg-8">
+                        <div class="glass-panel p-4 mb-4 h-100">
+                            <h4 class="text-white mb-3">Milestone Progress Analytics</h4>
+                            <div style="height: 250px; position: relative;">
                                 <canvas id="userDashboardChart"></canvas>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Quick Actions -->
-                    <div class="col-lg-4 reveal">
+                    <div class="col-lg-4">
                         <div class="glass-panel p-4 h-100">
-                            <h4 class="text-white mb-4 fw-700">Quick Actions</h4>
-                            <div class="d-flex flex-column gap-3">
-                                <a href="/erp/edit-profile/" class="btn btn-secondary-premium text-start w-100 py-3">
-                                    <i class="bi bi-pencil-square me-2 text-primary-green"></i> Edit Profile
-                                </a>
-                                <a href="/erp/messages/" class="btn btn-secondary-premium text-start w-100 py-3">
-                                    <i class="bi bi-chat-dots-fill me-2 text-accent-green"></i> Message Mentor
-                                </a>
-                                <a href="/erp/analytics/" class="btn btn-secondary-premium text-start w-100 py-3">
-                                    <i class="bi bi-bar-chart-fill me-2 text-primary-green"></i> Track Progress
-                                </a>
-                                <a href="/erp/upload-files/" class="btn btn-secondary-premium text-start w-100 py-3">
-                                    <i class="bi bi-cloud-arrow-up me-2 text-accent-green"></i> Submit Assignment
-                                </a>
+                            <h4 class="text-white mb-3">Quick Actions</h4>
+                            <div class="d-flex flex-column gap-2">
+                                <a href="/erp/edit-profile/" class="btn btn-secondary-premium text-start w-100"><i class="bi bi-pencil-square me-2 text-primary"></i> Edit Profile</a>
+                                <a href="/erp/messages/" class="btn btn-secondary-premium text-start w-100"><i class="bi bi-chat-dots-fill me-2 text-accent"></i> Message Admin</a>
+                                <a href="/erp/analytics/" class="btn btn-secondary-premium text-start w-100"><i class="bi bi-bar-chart-fill me-2 text-success"></i> Track Progress</a>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Course Progress & Upcoming Deadlines -->
-                <div class="row g-4 mb-4">
-                    <div class="col-lg-6 reveal">
-                        <div class="glass-panel p-4 h-100">
-                            <h4 class="text-white mb-4 fw-700">Course Progress</h4>
-                            <div class="d-flex flex-column gap-4">
-                                <div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="text-white small fw-600">Foundation & Setup</span>
-                                        <span class="text-primary-green small fw-600">100%</span>
-                                    </div>
-                                    <div class="progress-premium"><div class="progress-bar" data-width="100%" style="width: 0%;"></div></div>
-                                </div>
-                                <div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="text-white small fw-600">Core Development</span>
-                                        <span class="text-primary-green small fw-600">85%</span>
-                                    </div>
-                                    <div class="progress-premium"><div class="progress-bar" data-width="85%" style="width: 0%;"></div></div>
-                                </div>
-                                <div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="text-white small fw-600">Advanced Concepts</span>
-                                        <span class="text-warning small fw-600">45%</span>
-                                    </div>
-                                    <div class="progress-premium"><div class="progress-bar" data-width="45%" style="width: 0%;"></div></div>
-                                </div>
-                                <div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="text-white small fw-600">Live Project Sprint</span>
-                                        <span class="text-muted small fw-600">0%</span>
-                                    </div>
-                                    <div class="progress-premium"><div class="progress-bar" data-width="0%" style="width: 0%;"></div></div>
-                                </div>
-                                <div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="text-white small fw-600">Capstone & Placement</span>
-                                        <span class="text-muted small fw-600">0%</span>
-                                    </div>
-                                    <div class="progress-premium"><div class="progress-bar" data-width="0%" style="width: 0%;"></div></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 reveal">
-                        <div class="glass-panel p-4 h-100">
-                            <h4 class="text-white mb-4 fw-700">Upcoming Deadlines</h4>
-                            <div class="d-flex flex-column gap-3">
-                                <div class="d-flex align-items-center gap-3 p-3 rounded-premium" style="background: rgba(0, 200, 83, 0.04); border: 1px solid var(--card-border);">
-                                    <div class="text-center" style="min-width: 48px;">
-                                        <div class="text-primary-green fw-800" style="font-size: 1.4rem; line-height: 1;">05</div>
-                                        <div class="text-muted" style="font-size: 0.7rem;">JUL</div>
-                                    </div>
-                                    <div>
-                                        <h6 class="text-white mb-0 small fw-600">Week 5 Assignment Submission</h6>
-                                        <span class="text-muted" style="font-size: 0.8rem;">REST API Project · Due in 2 days</span>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-center gap-3 p-3 rounded-premium" style="background: rgba(0, 200, 83, 0.04); border: 1px solid var(--card-border);">
-                                    <div class="text-center" style="min-width: 48px;">
-                                        <div class="text-warning fw-800" style="font-size: 1.4rem; line-height: 1;">10</div>
-                                        <div class="text-muted" style="font-size: 0.7rem;">JUL</div>
-                                    </div>
-                                    <div>
-                                        <h6 class="text-white mb-0 small fw-600">Mid-Program Review Meeting</h6>
-                                        <span class="text-muted" style="font-size: 0.8rem;">With Mentor · Due in 7 days</span>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-center gap-3 p-3 rounded-premium" style="background: rgba(0, 200, 83, 0.04); border: 1px solid var(--card-border);">
-                                    <div class="text-center" style="min-width: 48px;">
-                                        <div class="text-accent-green fw-800" style="font-size: 1.4rem; line-height: 1;">15</div>
-                                        <div class="text-muted" style="font-size: 0.7rem;">JUL</div>
-                                    </div>
-                                    <div>
-                                        <h6 class="text-white mb-0 small fw-600">Database Schema Presentation</h6>
-                                        <span class="text-muted" style="font-size: 0.8rem;">Team Review · Due in 12 days</span>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-center gap-3 p-3 rounded-premium" style="background: rgba(0, 200, 83, 0.04); border: 1px solid var(--card-border);">
-                                    <div class="text-center" style="min-width: 48px;">
-                                        <div class="text-muted fw-800" style="font-size: 1.4rem; line-height: 1;">25</div>
-                                        <div class="text-muted" style="font-size: 0.7rem;">JUL</div>
-                                    </div>
-                                    <div>
-                                        <h6 class="text-white mb-0 small fw-600">Capstone Project Proposal</h6>
-                                        <span class="text-muted" style="font-size: 0.8rem;">Individual · Due in 22 days</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Announcements & Achievements -->
-                <div class="row g-4 mb-4">
-                    <div class="col-lg-8 reveal">
-                        <div class="glass-panel p-4">
-                            <h4 class="text-white mb-4 fw-700">Announcements</h4>
-                            <div class="d-flex flex-column gap-3">
-                                <div class="d-flex align-items-start gap-3 p-3 rounded-premium" style="border-left: 3px solid var(--primary); background: rgba(0, 200, 83, 0.03);">
-                                    <i class="bi bi-megaphone-fill text-primary-green mt-1"></i>
-                                    <div>
-                                        <h6 class="text-white mb-1 small fw-600">July 2026 Cohort Sprint Begins</h6>
-                                        <p class="text-secondary small mb-0">All interns in the current batch will begin their live project sprint on July 8th. Please ensure your development environment is fully configured.</p>
-                                        <span class="text-muted" style="font-size: 0.75rem;">2 hours ago</span>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-start gap-3 p-3 rounded-premium" style="border-left: 3px solid var(--accent); background: rgba(0, 230, 118, 0.03);">
-                                    <i class="bi bi-calendar-event-fill text-accent-green mt-1"></i>
-                                    <div>
-                                        <h6 class="text-white mb-1 small fw-600">Workshop: Building Scalable APIs with Django REST Framework</h6>
-                                        <p class="text-secondary small mb-0">Join our lead architect for a live coding session on Saturday, July 6th at 11:00 AM IST.</p>
-                                        <span class="text-muted" style="font-size: 0.75rem;">Yesterday</span>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-start gap-3 p-3 rounded-premium" style="border-left: 3px solid var(--warning); background: rgba(255, 193, 7, 0.03);">
-                                    <i class="bi bi-info-circle-fill text-warning mt-1"></i>
-                                    <div>
-                                        <h6 class="text-white mb-1 small fw-600">System Maintenance Notice</h6>
-                                        <p class="text-secondary small mb-0">The ERP portal will undergo scheduled maintenance on Sunday, July 7th from 2:00 AM to 5:00 AM IST.</p>
-                                        <span class="text-muted" style="font-size: 0.75rem;">3 days ago</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 reveal">
-                        <div class="glass-panel p-4 h-100">
-                            <h4 class="text-white mb-4 fw-700">Achievements</h4>
-                            <div class="d-flex flex-column gap-3">
-                                <div class="d-flex align-items-center gap-3 p-3 rounded-premium" style="background: rgba(0, 200, 83, 0.05); border: 1px solid var(--card-border);">
-                                    <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 44px; height: 44px; background: var(--primary-gradient); flex-shrink: 0;">
-                                        <i class="bi bi-lightning-fill text-white"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="text-white mb-0 small fw-600">Fast Starter</h6>
-                                        <span class="text-muted" style="font-size: 0.75rem;">Completed setup in 1 day</span>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-center gap-3 p-3 rounded-premium" style="background: rgba(0, 200, 83, 0.05); border: 1px solid var(--card-border);">
-                                    <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 44px; height: 44px; background: var(--primary-gradient); flex-shrink: 0;">
-                                        <i class="bi bi-code-slash text-white"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="text-white mb-0 small fw-600">First Commit</h6>
-                                        <span class="text-muted" style="font-size: 0.75rem;">Pushed first code contribution</span>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-center gap-3 p-3 rounded-premium" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--card-border); opacity: 0.5;">
-                                    <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 44px; height: 44px; background: var(--card-border); flex-shrink: 0;">
-                                        <i class="bi bi-star-fill text-muted"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="text-white mb-0 small fw-600">Code Review Pro</h6>
-                                        <span class="text-muted" style="font-size: 0.75rem;">Locked · Complete 10 reviews</span>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-center gap-3 p-3 rounded-premium" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--card-border); opacity: 0.5;">
-                                    <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 44px; height: 44px; background: var(--card-border); flex-shrink: 0;">
-                                        <i class="bi bi-trophy text-muted"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="text-white mb-0 small fw-600">Capstone Champion</h6>
-                                        <span class="text-muted" style="font-size: 0.75rem;">Locked · Complete capstone</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Activity Timeline -->
-                <div class="glass-panel p-4 mb-4 reveal">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div>
-                            <h4 class="text-white mb-1 fw-700">Recent Activity</h4>
-                            <p class="text-secondary small mb-0">Your latest actions and system events</p>
-                        </div>
-                        <a href="/erp/activity-logs/" class="btn btn-ghost btn-sm">View All <i class="bi bi-arrow-right"></i></a>
-                    </div>
+                <!-- Recent Activities Table -->
+                <div class="glass-panel p-4 mt-4">
+                    <h4 class="text-white mb-3">Recent Activity Logs</h4>
                     <div class="table-responsive">
                         <table class="custom-table text-white mb-0">
                             <thead>
@@ -403,87 +173,12 @@
                         </table>
                     </div>
                 </div>
-
-                <!-- Mentor & Performance -->
-                <div class="row g-4 mb-4">
-                    <div class="col-lg-4 reveal">
-                        <div class="glass-panel p-4 h-100 text-center">
-                            <div class="d-flex align-items-center justify-content-center rounded-circle mx-auto mb-3" style="width: 80px; height: 80px; background: var(--primary-gradient);">
-                                <i class="bi bi-person-workspace text-white" style="font-size: 2rem;"></i>
-                            </div>
-                            <h5 class="text-white mb-1 fw-700">Your Mentor</h5>
-                            <p class="text-primary-green small fw-600 mb-2">Arjun Mehta</p>
-                            <p class="text-secondary small mb-3">Senior Software Architect · 12+ Years Experience</p>
-                            <a href="/erp/messages/" class="btn btn-secondary-premium btn-sm px-4">
-                                <i class="bi bi-chat-dots me-1"></i> Send Message
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-8 reveal">
-                        <div class="glass-panel p-4 h-100">
-                            <h4 class="text-white mb-4 fw-700">Performance Overview</h4>
-                            <div class="row g-4">
-                                <div class="col-md-4 text-center">
-                                    <div class="p-3">
-                                        <h2 class="gradient-text fw-800 mb-1">A+</h2>
-                                        <p class="text-secondary small mb-0">Code Quality</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 text-center">
-                                    <div class="p-3">
-                                        <h2 class="gradient-text fw-800 mb-1">92%</h2>
-                                        <p class="text-secondary small mb-0">Attendance</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 text-center">
-                                    <div class="p-3">
-                                        <h2 class="gradient-text fw-800 mb-1">4/5</h2>
-                                        <p class="text-secondary small mb-0">Mentor Rating</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <hr style="border-color: var(--card-border); opacity: 0.5;">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <span class="text-secondary small">Communication</span>
-                                        <span class="text-primary-green small fw-600">88%</span>
-                                    </div>
-                                    <div class="progress-premium"><div class="progress-bar" data-width="88%" style="width: 0%;"></div></div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <span class="text-secondary small">Problem Solving</span>
-                                        <span class="text-primary-green small fw-600">76%</span>
-                                    </div>
-                                    <div class="progress-premium"><div class="progress-bar" data-width="76%" style="width: 0%;"></div></div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <span class="text-secondary small">Team Collaboration</span>
-                                        <span class="text-primary-green small fw-600">95%</span>
-                                    </div>
-                                    <div class="progress-premium"><div class="progress-bar" data-width="95%" style="width: 0%;"></div></div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <span class="text-secondary small">Time Management</span>
-                                        <span class="text-warning small fw-600">65%</span>
-                                    </div>
-                                    <div class="progress-premium"><div class="progress-bar" data-width="65%" style="width: 0%;"></div></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/js/mockData.js"></script>
-    <script src="/static/js/app.js?v=6.0"></script>
-    <script src="/static/js/animations.js?v=6.0"></script>
+    <script src="/static/js/app.js"></script>
 </body>
 </html>

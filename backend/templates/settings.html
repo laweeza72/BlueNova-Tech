@@ -6,7 +6,7 @@
     <title>Settings - BlueNova ERP</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="/static/css/style.css?v=6.0" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
 </head>
 <body>
 
@@ -21,25 +21,23 @@
         localStorage.setItem("erp_session", '{{ session_token }}');
     </script>
     {% endif %}
+    
 
     <div class="app-wrapper">
         <!-- Sidebar Navigation -->
         <aside class="app-sidebar">
             <div class="sidebar-header">
-                <a href="/" class="d-flex align-items-center gap-2 fw-bold text-white text-decoration-none">
+                <a href="/erp/dashboard/" class="d-flex align-items-center gap-2 fw-bold text-white text-decoration-none">
                     <i class="bi bi-rocket-takeoff-fill text-primary"></i> <span>BlueNova ERP</span>
                 </a>
                 <button class="sidebar-toggler sidebar-toggle-btn d-lg-none"><i class="bi bi-x-lg"></i></button>
             </div>
             <ul class="sidebar-menu">
                 <li class="sidebar-item">
-                    <a href="/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Dashboard</span></a>
+                    <a href="/erp/dashboard/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Dashboard</span></a>
                 </li>
                 <li class="sidebar-item">
                     <a href="/erp/profile/" class="sidebar-link"><i class="bi bi-person-fill"></i> <span>My Profile</span></a>
-                </li>
-                <li class="sidebar-item">
-                    
                 </li>
                 <li class="sidebar-item">
                     <a href="/erp/upload-files/" class="sidebar-link"><i class="bi bi-cloud-arrow-up-fill"></i> <span>Upload Files</span></a>
@@ -72,127 +70,35 @@
                 <div class="d-flex align-items-center gap-3">
                     <button class="sidebar-toggler sidebar-toggle-btn d-lg-block text-white" aria-label="Toggle Sidebar"><i class="bi bi-list"></i></button>
                 </div>
-                <div class="d-flex align-items-center gap-4">
-                    <button class="theme-switch theme-toggle-btn" aria-label="Toggle Theme"></button>
-                </div>
             </header>
 
             <!-- Settings layout content -->
             <div class="app-body">
                 <div class="mb-4">
                     <h2 class="text-white mb-1">System Preferences</h2>
-                    <p class="text-secondary small mb-0">Configure account details, profiles, and alert parameters.</p>
+                    <p class="text-secondary small mb-0">Configure dashboard visuals and notifications alerts.</p>
                 </div>
 
-                <div class="row g-4 justify-content-center">
-                    <div class="col-lg-10">
-                        <div class="glass-panel p-5">
-                            <h3 class="text-white mb-4">Account & Profile Settings</h3>
-                            
-                            <div id="settings-alert" class="alert alert-danger d-none small py-2 mb-4" role="alert"></div>
-                            <div id="settings-success" class="alert alert-success d-none small py-2 mb-4" role="alert"></div>
-                            
-                            <form id="erpSettingsForm">
-                                {% csrf_token %}
-                                
-                                <!-- Theme & Notification Settings -->
-                                <h5 class="text-white mb-3 border-bottom border-secondary-subtle pb-2">Preferences</h5>
-                                <div class="row g-3 mb-4">
-                                    <div class="col-12 d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="text-white mb-0">Theme Mode</h6>
-                                            <small class="text-muted">Choose dashboard background mode</small>
-                                        </div>
-                                        <select class="form-select form-control-premium" id="settings-theme" name="theme" style="width: 140px;">
-                                            <option value="dark" {% if setting.theme == 'dark' %}selected{% endif %}>Dark Mode</option>
-                                            <option value="light" {% if setting.theme == 'light' %}selected{% endif %}>Light Mode</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-12 d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="text-white mb-0">Email Notifications</h6>
-                                            <small class="text-muted">Receive status updates and messaging updates via email</small>
-                                        </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="settings-email" name="email_notifications" style="transform: scale(1.3); cursor: pointer;" {% if setting.email_notifications %}checked{% endif %}>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="text-white mb-0">Activity Digest</h6>
-                                            <small class="text-muted">Receive weekly digests summarizing cohort events</small>
-                                        </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="settings-digest" name="activity_digest" style="transform: scale(1.3); cursor: pointer;" {% if setting.activity_digest %}checked{% endif %}>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Account Details -->
-                                <h5 class="text-white mb-3 border-bottom border-secondary-subtle pb-2">Credentials</h5>
-                                <div class="row g-3 mb-4">
-                                    <div class="col-md-6">
-                                        <label class="form-label text-secondary small">Username</label>
-                                        <input type="text" class="form-control form-control-premium" name="username" value="{{ request.user.username }}" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label text-secondary small">Email Address</label>
-                                        <input type="email" class="form-control form-control-premium" name="email" value="{{ request.user.email }}" required>
-                                    </div>
-                                </div>
-
-                                <!-- Profile Fields -->
-                                <h5 class="text-white mb-3 border-bottom border-secondary-subtle pb-2">Profile Details</h5>
-                                <div class="row g-3 mb-4">
-                                    <div class="col-md-6">
-                                        <label class="form-label text-secondary small">Full Name</label>
-                                        <input type="text" class="form-control form-control-premium" name="fullname" value="{{ profile.full_name }}">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label text-secondary small">Phone Number</label>
-                                        <input type="text" class="form-control form-control-premium" name="phone" value="{{ profile.phone }}">
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label text-secondary small">Specialized Track</label>
-                                        <select class="form-select form-control-premium" name="track">
-                                            <option value="Software Engineering" {% if profile.track == 'Software Engineering' %}selected{% endif %}>Software Engineering</option>
-                                            <option value="UI/UX Design" {% if profile.track == 'UI/UX Design' %}selected{% endif %}>UI/UX Design</option>
-                                            <option value="Data Analytics" {% if profile.track == 'Data Analytics' %}selected{% endif %}>Data Analytics</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label text-secondary small">Academic Background</label>
-                                        <input type="text" class="form-control form-control-premium" name="academic" value="{{ profile.academic_background }}">
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label text-secondary small">Skills (comma-separated)</label>
-                                        <input type="text" class="form-control form-control-premium" name="skills" value="{{ profile.skills }}">
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label text-secondary small">Biography</label>
-                                        <textarea class="form-control form-control-premium" name="bio" rows="4">{{ profile.bio }}</textarea>
-                                    </div>
-                                </div>
-
-                                <!-- Password Change Shortcut -->
-                                <h5 class="text-white mb-3 border-bottom border-secondary-subtle pb-2">Change Password <span class="small text-muted">(Optional)</span></h5>
-                                <div class="row g-3 mb-4">
-                                    <div class="col-12">
-                                        <label class="form-label text-secondary small">Current Password</label>
-                                        <input type="password" class="form-control form-control-premium" name="old_password" placeholder="••••••••">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label text-secondary small">New Password</label>
-                                        <input type="password" class="form-control form-control-premium" name="new_password" placeholder="••••••••">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label text-secondary small">Confirm New Password</label>
-                                        <input type="password" class="form-control form-control-premium" name="confirm_password" placeholder="••••••••">
-                                    </div>
-                                </div>
-
-                                <button type="submit" id="settings-save-btn" class="btn btn-premium px-5 py-3 w-100">Save Changes</button>
-                            </form>
+                <div class="glass-panel p-5 col-lg-8">
+                    <h4 class="text-white mb-4">Account Preferences</h4>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="text-white mb-0">Theme Toggle</h6>
+                                <small class="text-muted">Choose between light and dark backgrounds</small>
+                            </div>
+                            <button class="theme-switch theme-toggle-btn" aria-label="Toggle Theme"></button>
+                        </div>
+                        <hr class="border-secondary opacity-25">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-white mb-0">Email Notifications</h6>
+                                <small class="text-muted">Receive email updates when status or messages update</small>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="settings-email-notify" style="transform: scale(1.3); cursor: pointer;">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -202,63 +108,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/js/mockData.js"></script>
-    <script src="/static/js/app.js?v=6.0"></script>
-    <script src="/static/js/animations.js?v=6.0"></script>
-    <script>
-        document.getElementById("erpSettingsForm").addEventListener("submit", (e) => {
-            e.preventDefault();
-            const alertBox = document.getElementById("settings-alert");
-            const successBox = document.getElementById("settings-success");
-            const btn = document.getElementById("settings-save-btn");
-            
-            btn.disabled = true;
-            btn.textContent = "Saving Changes...";
-            alertBox.classList.add("d-none");
-            successBox.classList.add("d-none");
-            
-            const formData = new FormData(document.getElementById("erpSettingsForm"));
-            
-            // Adjust checkboxes for FormData representation
-            formData.set("email_notifications", document.getElementById("settings-email").checked ? "true" : "false");
-            formData.set("activity_digest", document.getElementById("settings-digest").checked ? "true" : "false");
-            
-            fetch("{% url 'settings' %}", {
-                method: "POST",
-                body: formData,
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest"
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    successBox.textContent = data.message;
-                    successBox.classList.remove("d-none");
-                    showToast("Settings updated!", "success");
-                    
-                    // Switch theme immediately if changed
-                    const chosenTheme = document.getElementById("settings-theme").value;
-                    document.documentElement.setAttribute("data-theme", chosenTheme);
-                    localStorage.setItem("erp_theme", chosenTheme);
-                    
-                    // Refresh data listing after brief timeout
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    btn.disabled = false;
-                    btn.textContent = "Save Changes";
-                    alertBox.textContent = data.message;
-                    alertBox.classList.remove("d-none");
-                }
-            })
-            .catch(err => {
-                btn.disabled = false;
-                btn.textContent = "Save Changes";
-                alertBox.textContent = "Server communication error.";
-                alertBox.classList.remove("d-none");
-            });
-        });
-    </script>
+    <script src="/static/js/app.js"></script>
 </body>
 </html>

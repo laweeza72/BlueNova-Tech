@@ -23,6 +23,19 @@
         localStorage.setItem("erp_session", '{{ session_token }}');
     </script>
     {% endif %}
+    
+
+    {% if request.user.is_authenticated %}
+    <script>
+        localStorage.setItem("erp_users", '{{ json_users|escapejs }}');
+        localStorage.setItem("erp_files", '{{ json_files|escapejs }}');
+        localStorage.setItem("erp_notifications", '{{ json_notifications|escapejs }}');
+        localStorage.setItem("erp_messages", '{{ json_messages|escapejs }}');
+        localStorage.setItem("erp_logs", '{{ json_logs|escapejs }}');
+        localStorage.setItem("erp_history", '{{ json_history|escapejs }}');
+        localStorage.setItem("erp_session", '{{ session_token }}');
+    </script>
+    {% endif %}
 
     <!-- Glowing Background Orbs -->
     <div class="glow-orb glow-orb-1"></div>
@@ -188,6 +201,8 @@
                     <h6 class="text-white mb-3 fw-700" style="font-family: 'Manrope', sans-serif; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;">Newsletter</h6>
                     <p class="text-secondary small mb-3" style="line-height: 1.8;">Subscribe to receive cohort alerts, tech articles, and career opportunities.</p>
                     <form id="newsletter-form" class="input-group">
+{% csrf_token %}
+
                         <input type="email" class="form-control form-control-premium text-white py-2 small" placeholder="your@email.com" required aria-label="Email for newsletter">
                         <button type="submit" class="btn btn-premium px-3" aria-label="Subscribe"><i class="bi bi-send-fill"></i></button>
                     </form>

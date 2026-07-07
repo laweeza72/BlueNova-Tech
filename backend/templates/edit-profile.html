@@ -6,21 +6,7 @@
     <title>Edit Profile - BlueNova ERP</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <!-- Cropper.js CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
-    <link href="/static/css/style.css?v=6.0" rel="stylesheet">
-    <style>
-        .cropper-view-box,
-        .cropper-face {
-            border-radius: 50%;
-        }
-        .modal-content.glass-panel {
-            background: rgba(18, 18, 36, 0.7) !important;
-            backdrop-filter: blur(20px) !important;
-            border: 1px solid var(--card-hover-border) !important;
-            border-radius: 20px;
-        }
-    </style>
+    <link href="/static/css/style.css" rel="stylesheet">
 </head>
 <body>
 
@@ -35,25 +21,23 @@
         localStorage.setItem("erp_session", '{{ session_token }}');
     </script>
     {% endif %}
+    
 
     <div class="app-wrapper">
         <!-- Sidebar Navigation -->
         <aside class="app-sidebar">
             <div class="sidebar-header">
-                <a href="/" class="d-flex align-items-center gap-2 fw-bold text-white text-decoration-none">
+                <a href="/erp/dashboard/" class="d-flex align-items-center gap-2 fw-bold text-white text-decoration-none">
                     <i class="bi bi-rocket-takeoff-fill text-primary"></i> <span>BlueNova ERP</span>
                 </a>
                 <button class="sidebar-toggler sidebar-toggle-btn d-lg-none"><i class="bi bi-x-lg"></i></button>
             </div>
             <ul class="sidebar-menu">
                 <li class="sidebar-item">
-                    <a href="/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Dashboard</span></a>
+                    <a href="/erp/dashboard/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Dashboard</span></a>
                 </li>
                 <li class="sidebar-item active">
                     <a href="/erp/profile/" class="sidebar-link"><i class="bi bi-person-fill"></i> <span>My Profile</span></a>
-                </li>
-                <li class="sidebar-item">
-                    
                 </li>
                 <li class="sidebar-item">
                     <a href="/erp/upload-files/" class="sidebar-link"><i class="bi bi-cloud-arrow-up-fill"></i> <span>Upload Files</span></a>
@@ -100,20 +84,7 @@
 
                 <div class="glass-panel p-5 col-lg-9">
                     <form id="editProfileForm">
-                        {% csrf_token %}
-
-                        <!-- Profile Picture Section -->
-                        <div class="col-12 d-flex align-items-center gap-4 mb-4 pb-4 border-bottom border-secondary-subtle">
-                            <div class="position-relative">
-                                <img id="edit-prof-avatar" src="{% if profile.profile_picture %}{{ profile.profile_picture.url }}{% else %}/media/profile_pictures/default-avatar.png{% endif %}" class="rounded-circle border border-2 border-secondary" width="100" height="100" style="object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" alt="Avatar">
-                            </div>
-                            <div>
-                                <h6 class="text-white mb-2">Profile Picture</h6>
-                                <button type="button" class="btn btn-sm btn-premium me-2" onclick="document.getElementById('avatar-file-input').click()"><i class="bi bi-camera-fill me-1"></i> Change Picture</button>
-                                <button type="button" id="btn-remove-pic" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash-fill me-1"></i> Remove</button>
-                                <input type="file" id="avatar-file-input" class="d-none" accept="image/png, image/jpeg, image/jpg, image/webp">
-                            </div>
-                        </div>
+{% csrf_token %}
 
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -155,187 +126,8 @@
         </main>
     </div>
 
-    <!-- Cropping Modal -->
-    <div class="modal fade" id="cropModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-md modal-dialog-centered">
-            <div class="modal-content glass-panel p-4">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title text-white">Adjust Profile Photo</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="if(cropper){cropper.destroy();}"></button>
-                </div>
-                <div class="modal-body text-center mt-3">
-                    <div style="max-height: 350px; overflow: hidden; border-radius: 12px;" class="mb-4">
-                        <img id="crop-image" src="" alt="Source Image" style="max-width: 100%; display: block;">
-                    </div>
-                    <!-- Zoom & Rotate controls -->
-                    <div class="d-flex justify-content-center gap-3 mb-4">
-                        <button type="button" id="btn-crop-zoom-in" class="btn btn-sm btn-secondary-premium"><i class="bi bi-zoom-in"></i></button>
-                        <button type="button" id="btn-crop-zoom-out" class="btn btn-sm btn-secondary-premium"><i class="bi bi-zoom-out"></i></button>
-                        <button type="button" id="btn-crop-rotate-left" class="btn btn-sm btn-secondary-premium"><i class="bi bi-arrow-counterclockwise"></i></button>
-                        <button type="button" id="btn-crop-rotate-right" class="btn btn-sm btn-secondary-premium"><i class="bi bi-arrow-clockwise"></i></button>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-secondary-premium w-100" data-bs-dismiss="modal" onclick="if(cropper){cropper.destroy();}">Cancel</button>
-                        <button type="button" id="btn-crop-save" class="btn btn-premium w-100">Save Photo</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Cropper.js Script -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
     <script src="/static/js/mockData.js"></script>
-    <script src="/static/js/app.js?v=6.0"></script>
-    <script src="/static/js/animations.js?v=6.0"></script>
-    <script>
-        // Profile Picture management logic inside Edit Profile screen
-        let cropper = null;
-        const fileInput = document.getElementById("avatar-file-input");
-        const cropImage = document.getElementById("crop-image");
-        const cropModal = new bootstrap.Modal(document.getElementById("cropModal"));
-
-        fileInput.addEventListener("change", function(e) {
-            const files = e.target.files;
-            if (files.length === 0) return;
-            const file = files[0];
-            
-            const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
-            if (!allowedTypes.includes(file.type)) {
-                showToast("Invalid format. Upload JPG, JPEG, PNG, or WEBP.", "danger");
-                return;
-            }
-            if (file.size > 5 * 1024 * 1024) {
-                showToast("File is too large. Limit is 5MB.", "danger");
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                cropImage.src = event.target.result;
-                cropModal.show();
-                
-                if (cropper) {
-                    cropper.destroy();
-                }
-                
-                document.getElementById("cropModal").addEventListener('shown.bs.modal', function initCropper() {
-                    cropper = new Cropper(cropImage, {
-                        aspectRatio: 1,
-                        viewMode: 1,
-                        dragMode: 'move',
-                        autoCropArea: 1,
-                        restore: false,
-                        guides: false,
-                        center: false,
-                        highlight: false,
-                        cropBoxMovable: false,
-                        cropBoxResizable: false,
-                        toggleDragModeOnDblclick: false,
-                    });
-                    document.getElementById("cropModal").removeEventListener('shown.bs.modal', initCropper);
-                });
-            };
-            reader.readAsDataURL(file);
-        });
-
-        document.getElementById("btn-crop-zoom-in").addEventListener("click", () => cropper && cropper.zoom(0.1));
-        document.getElementById("btn-crop-zoom-out").addEventListener("click", () => cropper && cropper.zoom(-0.1));
-        document.getElementById("btn-crop-rotate-left").addEventListener("click", () => cropper && cropper.rotate(-90));
-        document.getElementById("btn-crop-rotate-right").addEventListener("click", () => cropper && cropper.rotate(90));
-
-        document.getElementById("btn-crop-save").addEventListener("click", function() {
-            if (!cropper) return;
-            
-            cropper.getCroppedCanvas({
-                width: 300,
-                height: 300
-            }).toBlob((blob) => {
-                const formData = new FormData();
-                formData.append("profile_picture", blob, "avatar.png");
-                
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-                const btn = document.getElementById("btn-crop-save");
-                btn.disabled = true;
-                btn.textContent = "Saving...";
-                
-                fetch("/erp/profile/upload-picture/", {
-                    method: "POST",
-                    body: formData,
-                    headers: {
-                        "X-Requested-With": "XMLHttpRequest",
-                        "X-CSRFToken": csrfToken
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    btn.disabled = false;
-                    btn.textContent = "Save Photo";
-                    if (data.success) {
-                        showToast("Profile picture updated successfully!", "success");
-                        cropModal.hide();
-                        
-                        document.getElementById("edit-prof-avatar").src = data.profile_picture_url;
-                        const sideAvatar = document.getElementById("user-avatar");
-                        if (sideAvatar) sideAvatar.src = data.profile_picture_url;
-                        
-                        const user = getLoggedInUser();
-                        if (user) {
-                            const users = JSON.parse(localStorage.getItem("erp_users") || "[]");
-                            const idx = users.findIndex(u => u.id === user.id);
-                            if (idx !== -1) {
-                                users[idx].avatar = data.profile_picture_url;
-                                localStorage.setItem("erp_users", JSON.stringify(users));
-                            }
-                        }
-                    } else {
-                        showToast(data.message || "Failed to save photo.", "danger");
-                    }
-                })
-                .catch(err => {
-                    btn.disabled = false;
-                    btn.textContent = "Save Photo";
-                    showToast("Server communication error.", "danger");
-                });
-            }, "image/png");
-        });
-
-        document.getElementById("btn-remove-pic").addEventListener("click", function() {
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            
-            fetch("/erp/profile/remove-picture/", {
-                method: "POST",
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest",
-                    "X-CSRFToken": csrfToken
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showToast("Profile picture removed.", "success");
-                    document.getElementById("edit-prof-avatar").src = data.profile_picture_url;
-                    const sideAvatar = document.getElementById("user-avatar");
-                    if (sideAvatar) sideAvatar.src = data.profile_picture_url;
-                    
-                    const user = getLoggedInUser();
-                    if (user) {
-                        const users = JSON.parse(localStorage.getItem("erp_users") || "[]");
-                        const idx = users.findIndex(u => u.id === user.id);
-                        if (idx !== -1) {
-                            users[idx].avatar = data.profile_picture_url;
-                            localStorage.setItem("erp_users", JSON.stringify(users));
-                        }
-                    }
-                } else {
-                    showToast(data.message || "Failed to remove photo.", "danger");
-                }
-            })
-            .catch(err => {
-                showToast("Server communication error.", "danger");
-            });
-        });
-    </script>
+    <script src="/static/js/app.js"></script>
 </body>
 </html>
