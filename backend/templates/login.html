@@ -41,8 +41,8 @@
                         <div class="mb-3">
                             <label class="form-label text-secondary small">Username or Email</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-transparent border-end-0" style="border: 1px solid var(--card-border); color: var(--text-secondary);"><i class="bi bi-person"></i></span>
-                                <input type="text" id="login-username" name="username" class="form-control form-control-premium border-start-0" required placeholder="Enter username or email">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" id="login-username" name="username" class="form-control form-control-premium" required placeholder="Enter username or email">
                             </div>
                         </div>
                         <div class="mb-4">
@@ -51,8 +51,8 @@
                                 <a href="{% url 'forgot_password' %}" class="small text-primary text-decoration-none">Forgot password?</a>
                             </div>
                             <div class="input-group">
-                                <span class="input-group-text bg-transparent border-end-0" style="border: 1px solid var(--card-border); color: var(--text-secondary);"><i class="bi bi-lock"></i></span>
-                                <input type="password" id="login-password" name="password" class="form-control form-control-premium border-start-0" required placeholder="••••••••">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" id="login-password" name="password" class="form-control form-control-premium" required placeholder="••••••••">
                             </div>
                         </div>
 
@@ -104,6 +104,16 @@
                 } else {
                     alertBox.textContent = data.message || "Login failed. Please try again.";
                     alertBox.classList.remove("d-none");
+                    
+                    if (data.message === "User does not exist.") {
+                        alertBox.textContent = "User does not exist. Redirecting to application form...";
+                        btn.textContent = "Redirecting...";
+                        setTimeout(() => {
+                            window.location.href = '/courses/apply/';
+                        }, 2000);
+                        return;
+                    }
+                    
                     btn.disabled = false;
                     btn.textContent = "Sign In";
                 }

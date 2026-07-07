@@ -33,17 +33,42 @@
                 <button class="sidebar-toggler sidebar-toggle-btn d-lg-none"><i class="bi bi-x-lg"></i></button>
             </div>
             <ul class="sidebar-menu">
-                <li class="sidebar-item"><a href="/erp/dashboard/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Dashboard</span></a></li>
-                <li class="sidebar-item"><a href="/erp/profile/" class="sidebar-link"><i class="bi bi-person-fill"></i> <span>My Profile</span></a></li>
-                <li class="sidebar-item"><a href="/erp/upload-files/" class="sidebar-link"><i class="bi bi-folder-fill"></i> <span>Files</span></a></li>
-                <li class="sidebar-item"><a href="/erp/messages/" class="sidebar-link"><i class="bi bi-chat-left-text-fill"></i> <span>Messages</span></a></li>
-                <li class="sidebar-item active"><a href="/erp/reports/attendance/" class="sidebar-link"><i class="bi bi-calendar-check-fill"></i> <span>Attendance Report</span></a></li>
-                <li class="sidebar-item"><a href="/erp/reports/" class="sidebar-link"><i class="bi bi-file-earmark-bar-graph-fill"></i> <span>Reports</span></a></li>
-                <li class="sidebar-item"><a href="/erp/history/" class="sidebar-link"><i class="bi bi-clock-history"></i> <span>History</span></a></li>
-                <li class="sidebar-item"><a href="/erp/help-center/" class="sidebar-link"><i class="bi bi-question-circle-fill"></i> <span>Help Center</span></a></li>
-                <li class="sidebar-item"><a href="/erp/feedback/" class="sidebar-link"><i class="bi bi-star-fill"></i> <span>Feedback</span></a></li>
-                <li class="sidebar-item"><a href="{% url 'settings' %}" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a></li>
-                <li class="sidebar-item mt-5"><a href="/auth/logout/" class="sidebar-link text-danger"><i class="bi bi-box-arrow-right"></i> <span>Sign Out</span></a></li>
+                <li class="sidebar-item">
+                    <a href="/erp/dashboard/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Dashboard</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/profile/" class="sidebar-link"><i class="bi bi-person-fill"></i> <span>My Profile</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/upload-files/" class="sidebar-link"><i class="bi bi-folder-fill"></i> <span>Files</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/resume/" class="sidebar-link"><i class="bi bi-file-earmark-person-fill"></i> <span>Resume Builder</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/messages/" class="sidebar-link"><i class="bi bi-chat-left-text-fill"></i> <span>Messages</span></a>
+                </li>
+                <li class="sidebar-item active">
+                    <a href="/erp/reports/attendance/" class="sidebar-link"><i class="bi bi-calendar-check-fill"></i> <span>Attendance Report</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/history/" class="sidebar-link"><i class="bi bi-clock-history"></i> <span>History</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/reports/" class="sidebar-link"><i class="bi bi-file-earmark-bar-graph-fill"></i> <span>Reports Desk</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/help-center/" class="sidebar-link"><i class="bi bi-question-circle-fill"></i> <span>Help Center</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/erp/feedback/" class="sidebar-link"><i class="bi bi-star-fill"></i> <span>Feedback</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'settings' %}" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a>
+                </li>
+                <li class="sidebar-item mt-5">
+                    <a href="/auth/logout/" class="sidebar-link text-danger"><i class="bi bi-box-arrow-right"></i> <span>Sign Out</span></a>
+                </li>
             </ul>
         </aside>
 
@@ -68,7 +93,7 @@
             <div class="app-body">
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                     <div>
-                        <h2 class="text-white mb-1">My Attendance Report</h2>
+                        <h2 class="mb-1">My Attendance Report</h2>
                         <p class="text-secondary small mb-0">Track your attendance performance and history.</p>
                     </div>
                     <a href="/erp/reports/attendance/csv/" class="btn btn-secondary-premium btn-sm"><i class="bi bi-download me-1"></i> Export CSV</a>
@@ -76,44 +101,50 @@
 
                 <!-- Today's Status + Progress Ring -->
                 <div class="row g-3 mb-4">
-                    <div class="col-lg-4 col-md-6">
-                        <div class="glass-panel p-4 h-100 text-center">
+
+                    <!-- Today's Status -->
+                    <div class="col-6 col-lg-4">
+                        <div class="glass-panel p-3 p-md-4 h-100 text-center d-flex flex-column align-items-center justify-content-center">
                             <div class="text-secondary small mb-2">Today's Status</div>
                             {% if today_attendance %}
-                            <div class="mb-3">
-                                <span class="badge-status status-{{ today_attendance.status }}" style="font-size: 1.1rem; padding: 10px 20px;">
+                            <div class="mb-2">
+                                <span class="badge-status status-{{ today_attendance.status }}" style="font-size: clamp(0.8rem, 2.5vw, 1.1rem); padding: 8px 14px; white-space: nowrap;">
                                     {% if today_attendance.status == "present" %}✅{% elif today_attendance.status == "absent" %}❌{% elif today_attendance.status == "late" %}⏰{% else %}📅{% endif %}
                                     {{ today_attendance.status|title }}
                                 </span>
                             </div>
-                            <div class="text-secondary small">{{ today_date|date:"l, F d, Y" }}</div>
+                            <div class="text-secondary" style="font-size: clamp(0.65rem, 2vw, 0.8rem);">{{ today_date|date:"D, d M Y" }}</div>
                             {% else %}
-                            <div class="mb-3">
-                                <span class="badge-status status-pending" style="font-size: 1rem; padding: 10px 20px;">
+                            <div class="mb-2">
+                                <span class="badge-status status-pending" style="font-size: clamp(0.75rem, 2.5vw, 1rem); padding: 8px 14px; white-space: nowrap;">
                                     <i class="bi bi-hourglass-split me-1"></i> Not Marked
                                 </span>
                             </div>
-                            <div class="text-secondary small">Attendance not yet recorded for today.</div>
+                            <div class="text-secondary" style="font-size: clamp(0.65rem, 2vw, 0.8rem);">Not yet recorded for today.</div>
                             {% endif %}
                         </div>
                     </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="glass-panel p-4 h-100 text-center">
+
+                    <!-- Overall Attendance Ring -->
+                    <div class="col-6 col-lg-3">
+                        <div class="glass-panel p-3 p-md-4 h-100 text-center d-flex flex-column align-items-center justify-content-center">
                             <div class="attendance-progress-ring mx-auto mb-2">
-                                <svg width="120" height="120">
+                                <svg width="120" height="120" viewBox="0 0 120 120" style="width: clamp(80px, 20vw, 120px); height: clamp(80px, 20vw, 120px);">
                                     <circle class="progress-track" cx="60" cy="60" r="50"></circle>
                                     <circle class="progress-fill" cx="60" cy="60" r="50"
                                         stroke-dasharray="314.16"
                                         stroke-dashoffset="314.16"
                                         id="progress-circle"></circle>
                                 </svg>
-                                <span class="progress-text">{{ attendance_pct }}%</span>
+                                <span class="progress-text" style="font-size: clamp(1rem, 4vw, 1.5rem);">{{ attendance_pct }}%</span>
                             </div>
                             <div class="text-secondary small">Overall Attendance</div>
                         </div>
                     </div>
-                    <div class="col-lg-5 col-md-12">
-                        <div class="row g-3 h-100">
+
+                    <!-- 4 Stat Mini-Cards -->
+                    <div class="col-12 col-lg-5">
+                        <div class="row g-2 g-md-3 h-100">
                             <div class="col-6 col-md-3">
                                 <div class="glass-panel metric-card att-stat-present h-100 text-center">
                                     <div class="text-secondary small mb-1">Present</div>
@@ -140,6 +171,7 @@
                             </div>
                         </div>
                     </div>
+
                 </div>
 
                 <!-- Charts -->
@@ -148,7 +180,7 @@
                         <div class="row g-4">
                             <div class="col-md-6">
                                 <div class="glass-panel p-4">
-                                    <h5 class="text-white mb-3">Status Breakdown</h5>
+                                    <h5 class="mb-3">Status Breakdown</h5>
                                     <div style="height: 220px; position: relative;">
                                         <canvas id="reportPieChart"></canvas>
                                     </div>
@@ -156,7 +188,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="glass-panel p-4">
-                                    <h5 class="text-white mb-3">Monthly Trend</h5>
+                                    <h5 class="mb-3">Monthly Trend</h5>
                                     <div style="height: 220px; position: relative;">
                                         <canvas id="reportBarChart"></canvas>
                                     </div>
@@ -168,9 +200,9 @@
 
                 <!-- Recent History Table -->
                 <div class="glass-panel p-4">
-                    <h5 class="text-white mb-3">Recent Attendance History</h5>
+                    <h5 class="mb-3">Recent Attendance History</h5>
                     <div class="table-responsive">
-                        <table class="custom-table text-white mb-0">
+                        <table class="custom-table mb-0">
                             <thead>
                                 <tr>
                                     <th>Date</th>

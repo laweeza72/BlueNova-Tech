@@ -206,3 +206,26 @@ def reset_password_view(request):
             return JsonResponse({'success': False, 'message': 'User profile resolution error.'}, status=400)
 
     return render(request, 'reset-password.html')
+
+
+@login_required
+@csrf_protect
+def delete_account_view(request):
+    if request.method == 'POST':
+        user = request.user
+        email = user.email
+        
+        # Delete user (cascades to Profile, Setting, History, UploadedFile, Attendance, GeneratedResume, etc.)
+        user.delete()
+        
+        # Delete any associated internship application records to clear credentials
+        from core.models import InternshipApplication
+        InternshipApplication.objects.filter(email=email).delete()
+        
+        # Log out to clear session
+        auth_logout(request)
+        
+        return JsonResponse({'success': True, 'message': 'Account deleted successfully.'})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)
+
