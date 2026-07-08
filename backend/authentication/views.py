@@ -172,6 +172,8 @@ def admin_login_view(request):
 
 @csrf_protect
 def signup_view(request):
+    from core.models import Course
+    courses = Course.objects.all()
     if request.user.is_authenticated:
         return redirect('dashboard')
 
@@ -223,7 +225,7 @@ def signup_view(request):
             'redirect': '/auth/login/'
         })
 
-    return render(request, 'signup.html')
+    return render(request, 'signup.html', {'courses': courses})
 
 
 def logout_view(request):

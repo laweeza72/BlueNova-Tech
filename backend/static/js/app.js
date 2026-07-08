@@ -49,6 +49,9 @@ function refreshSystemState() {
             localStorage.setItem("erp_messages", JSON.stringify(data.messages));
             localStorage.setItem("erp_logs", JSON.stringify(data.logs));
             localStorage.setItem("erp_history", JSON.stringify(data.history));
+            if (data.courses) {
+                localStorage.setItem("erp_courses", JSON.stringify(data.courses));
+            }
             
             handleNotificationsBadge();
             const pathName = window.location.pathname;
@@ -419,31 +422,70 @@ function renderAdminDashboard() {
     // Admin charts
     const ctx = document.getElementById("adminCohortChart");
     if (ctx) {
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Software Eng', 'UI/UX Design', 'Data Analytics'],
-                datasets: [{
-                    label: 'Intern Count',
-                    data: [
-                        users.filter(u => u.track === 'Software Engineering').length,
-                        users.filter(u => u.track === 'UI/UX Design').length,
-                        users.filter(u => u.track === 'Data Analytics').length
-                    ],
-                    backgroundColor: ['#00c853', '#69f0ae', '#00e676'],
-                    borderRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
-                    x: { grid: { display: false }, ticks: { color: '#64748b' } }
+        // Fetch courses from the system state (if not cached separately, they are in system_state API)
+        fetch("/erp/api/system-state/")
+            .then(res => res.json())
+            .then(data => {
+                const courses = data.courses || [];
+                const backgroundColors = courses.map((_, i) => {
+                    const hue = (140 + i * 40) % 360;
+                    return `hsl(${hue}, 100%, 45%)`; // Dynamically generate green-ish / assorted colors
+                });
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: courses,
+                        datasets: [{
+                            label: 'Intern Count',
+                            data: courses.map(courseName => users.filter(u => u.track === courseName).length),
+                            backgroundColor: backgroundColors,
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
+                            x: { grid: { display: false }, ticks: { color: '#64748b' } }
+                        }
+                    }
+                });
+            });
+    }
+    
+    const courseForm = document.getElementById("admin-add-course-form");
+    if (courseForm) {
+        courseForm.onsubmit = (e) => {
+            e.preventDefault();
+            const courseName = document.getElementById("new-course-name").value;
+            fetch("/erp/admin/api/courses/add/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                body: JSON.stringify({ name: courseName })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, "success");
+                    document.getElementById("new-course-name").value = "";
+                    refreshSystemState().then(() => {
+                        renderAdminDashboard(); // re-render charts
+                    });
+                } else {
+                    showToast(data.message, "danger");
                 }
-            }
-        });
+            })
+            .catch(err => {
+                showToast("Failed to add course.", "danger");
+                console.error(err);
+            });
+        };
     }
     
     renderRecentUsers();
@@ -1513,22 +1555,38 @@ function renderInbox(currentUser, autoSelect = true) {
     
     // 1. Gather Group Chats
     let rawGroups = [];
+    
+    // Attempt to parse courses from a cached source, or fallback to the 3 defaults
+    // Since this is synchronous rendering, we rely on the backend passing the courses somehow
+    // Wait, let's fetch the courses asynchronously first?
+    // Actually, in system_state_api, we can store courses in localStorage!
+    const courses = JSON.parse(localStorage.getItem("erp_courses") || '["Software Engineering", "UI/UX Design", "Data Analytics"]');
+
     if (currentUser.role === "admin") {
         rawGroups = [
-            { id: "all-cohort", name: "All Cohort Candidates", desc: "All candidate tracks", isGroup: true, avatarInitials: "AC" },
-            { id: "Software Engineering", name: "Software Engineering Group", desc: "Software Engineering track Group Chat", isGroup: true, avatarInitials: "SE" },
-            { id: "UI/UX Design", name: "UI/UX Design Group", desc: "UI/UX Design track Group Chat", isGroup: true, avatarInitials: "UX" },
-            { id: "Data Analytics", name: "Data Analytics Group", desc: "Data Analytics track Group Chat", isGroup: true, avatarInitials: "DA" }
+            { id: "all-cohort", name: "All Cohort Candidates", desc: "All candidate tracks", isGroup: true, avatarInitials: "AC" }
         ];
+        courses.forEach(course => {
+            rawGroups.push({
+                id: course,
+                name: `${course} Group`,
+                desc: `${course} track Group Chat`,
+                isGroup: true,
+                avatarInitials: course.substring(0, 2).toUpperCase()
+            });
+        });
     } else {
         rawGroups = [
             { id: "all-cohort", name: "All Cohort Candidates", desc: "All candidate tracks", isGroup: true, avatarInitials: "AC" }
         ];
-        const track = currentUser.track || "Software Engineering";
-        let initials = "SE";
-        if (track === "UI/UX Design") initials = "UX";
-        if (track === "Data Analytics") initials = "DA";
-        rawGroups.push({ id: track, name: `${track} Group`, desc: `${track} Group Chat`, isGroup: true, avatarInitials: initials });
+        const track = currentUser.track || courses[0] || "General";
+        rawGroups.push({ 
+            id: track, 
+            name: `${track} Group`, 
+            desc: `${track} Group Chat`, 
+            isGroup: true, 
+            avatarInitials: track.substring(0, 2).toUpperCase() 
+        });
     }
     
     // Process Groups

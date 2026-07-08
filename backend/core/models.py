@@ -7,16 +7,10 @@ class Profile(models.Model):
         ('approved', 'Cohort Approved'),
         ('rejected', 'Application Rejected'),
     )
-    TRACK_CHOICES = (
-        ('Software Engineering', 'Software Engineering'),
-        ('UI/UX Design', 'UI/UX Design'),
-        ('Data Analytics', 'Data Analytics'),
-    )
-    
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
     full_name = models.CharField(max_length=200, blank=True)
     phone = models.CharField(max_length=20, blank=True)
-    track = models.CharField(max_length=50, choices=TRACK_CHOICES, blank=True)
+    track = models.CharField(max_length=150, blank=True)
     bio = models.TextField(blank=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', default='profile_pictures/default-avatar.png')
     resume = models.FileField(upload_to='resumes/', blank=True, null=True)
@@ -27,6 +21,14 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
+
+
+class Course(models.Model):
+    name = models.CharField(max_length=150, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
 
 
 class UploadedFile(models.Model):
@@ -165,14 +167,8 @@ class Attendance(models.Model):
         ('late', 'Late'),
         ('leave', 'Leave'),
     )
-    TRACK_CHOICES = (
-        ('Software Engineering', 'Software Engineering'),
-        ('UI/UX Design', 'UI/UX Design'),
-        ('Data Analytics', 'Data Analytics'),
-    )
-
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='attendance_records')
-    internship_track = models.CharField(max_length=50, choices=TRACK_CHOICES)
+    internship_track = models.CharField(max_length=150)
     date = models.DateField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='present')
     remarks = models.TextField(blank=True)

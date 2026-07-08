@@ -58,6 +58,7 @@ urlpatterns = [
     path('admin/api/users/action/', views.admin_user_action, name='admin_user_action'),
     path('admin/api/users/delete/', views.admin_user_delete, name='admin_user_delete'),
     path('admin/api/users/<int:user_id>/details/', views.admin_user_details, name='admin_user_details'),
+    path('admin/api/courses/add/', views.add_course_api, name='add_course_api'),
     path('api/check-status/', views.check_status_api, name='check_status_api'),
 
     # Attendance Management Module
