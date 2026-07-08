@@ -69,6 +69,10 @@ def login_view(request):
                 user_obj = User.objects.get(email=username_val)
             else:
                 user_obj = User.objects.get(username=username_val)
+                
+            if user_obj.role == 'user' and not hasattr(user_obj, 'profile'):
+                user_obj.delete()
+                raise User.DoesNotExist
         except User.DoesNotExist:
             # Count failed attempt even for non-existent users (prevents user enumeration timing bypass)
             fail_count += 1

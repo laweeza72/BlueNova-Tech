@@ -187,3 +187,10 @@ class Attendance(models.Model):
     def __str__(self):
         return f"{self.student.username} - {self.date} - {self.status}"
 
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+
+@receiver(post_delete, sender=settings.AUTH_USER_MODEL)
+def delete_related_applications(sender, instance, **kwargs):
+    InternshipApplication.objects.filter(email=instance.email).delete()
+

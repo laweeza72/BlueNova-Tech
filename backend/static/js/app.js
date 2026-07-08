@@ -85,7 +85,10 @@ function startRealtimePolling() {
                 return res.json();
             })
             .then(data => {
-                if (data.status === 'deleted') {
+                if (data.status === 'anonymous') {
+                    localStorage.clear();
+                    window.location.href = "/auth/login/";
+                } else if (data.status === 'deleted') {
                     showToast(data.message || "Your account has been removed.", "danger");
                     localStorage.clear();
                     setTimeout(() => {

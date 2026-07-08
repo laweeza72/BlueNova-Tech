@@ -1642,6 +1642,10 @@ def admin_user_delete(request):
         except Exception:
             pass
             
+    # Delete associated application records so the candidate can apply again with the same credentials
+    from core.models import InternshipApplication
+    InternshipApplication.objects.filter(email=user.email).delete()
+    
     user.delete()
     return JsonResponse({'success': True, 'message': f'User {target_name} permanently deleted.'})
 
@@ -1728,6 +1732,9 @@ def check_status_api(request):
         
     try:
         user = User.objects.get(id=request.user.id)
+        if user.role == 'user' and not hasattr(user, 'profile'):
+            user.delete()
+            raise User.DoesNotExist
     except User.DoesNotExist:
         request.session.flush()
         return JsonResponse({

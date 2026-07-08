@@ -1,402 +1,326 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlueNova Technologies - Internship ERP Portal</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="/static/css/style.css" rel="stylesheet">
-</head>
-<body>
+{% extends 'base_public.html' %}
 
-    {% if request.user.is_authenticated %}
-    <script>
-        localStorage.setItem("erp_users", '{{ json_users|escapejs }}');
-        localStorage.setItem("erp_files", '{{ json_files|escapejs }}');
-        localStorage.setItem("erp_notifications", '{{ json_notifications|escapejs }}');
-        localStorage.setItem("erp_messages", '{{ json_messages|escapejs }}');
-        localStorage.setItem("erp_logs", '{{ json_logs|escapejs }}');
-        localStorage.setItem("erp_history", '{{ json_history|escapejs }}');
-        localStorage.setItem("erp_session", '{{ session_token }}');
-    </script>
-    {% endif %}
-    
+{% block title %}BlueNova Technologies - Internship ERP Portal{% endblock %}
 
-    <!-- Glowing Background Orbs -->
-    <div class="glow-orb glow-orb-1"></div>
-    <div class="glow-orb glow-orb-2"></div>
+{% block content %}
 
-    <!-- Navigation Header -->
-    <nav class="navbar navbar-expand-xl landing-navbar fixed-top" aria-label="Main navigation">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-white fs-4" href="/" style="font-family:'Manrope',sans-serif; font-size:1.25rem!important; letter-spacing:-0.02em;">
-                <i class="bi bi-rocket-takeoff-fill text-primary" style="font-size:1.4rem;"></i>
-                BlueNova <span class="gradient-text">ERP</span>
-            </a>
-            <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle Navigation">
-                <span class="navbar-toggler-icon" style="filter:invert(1);"></span>
-            </button>
+<!-- Hero Section -->
+<header class="hero-section container text-center">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <span class="badge bg-primary-gradient px-3 py-2 rounded-pill mb-4 fade-in-up">⚡ 2026 COHORT REGISTRATIONS ACTIVE</span>
+            <h1 class="display-3 text-white fw-bold mb-4 fade-in-up" style="animation-delay: 0.1s;">
+                Launch Your Career with <br><span class="gradient-text">BlueNova Technologies</span>
+            </h1>
+            <p class="lead text-secondary mb-5 fade-in-up mx-auto col-md-8" style="animation-delay: 0.2s;">
+                Secure hands-on industry internship experience, professional certificates, live projects mentorship, and complete career placement assistance.
+            </p>
+            <div class="d-flex justify-content-center gap-3 fade-in-up" style="animation-delay: 0.3s;">
+                <a href="{% url 'apply' %}" class="btn btn-premium btn-lg">Apply for Internship</a>
+                <a href="#programs" class="btn btn-secondary-premium btn-lg">Explore Tracks</a>
+            </div>
+        </div>
+    </div>
+</header>
 
-            <div class="collapse navbar-collapse" id="navMenu">
-                <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1">
-                    <li class="nav-item"><a class="nav-link text-light" href="/">Home</a></li>
+<!-- Tech Partners / Hiring Network -->
+<section class="py-5 bg-secondary-bg border-top border-bottom border-secondary-subtle">
+    <div class="container text-center">
+        <p class="text-secondary small fw-bold mb-4 text-uppercase tracking-wider">Our Alumni Work At</p>
+        <div class="d-flex justify-content-center gap-5 flex-wrap opacity-75">
+            <!-- Simulated Partner Logos using Bootstrap Icons -->
+            <div class="d-flex align-items-center gap-2 text-white fs-4"><i class="bi bi-google text-primary"></i> Google</div>
+            <div class="d-flex align-items-center gap-2 text-white fs-4"><i class="bi bi-amazon text-warning"></i> Amazon</div>
+            <div class="d-flex align-items-center gap-2 text-white fs-4"><i class="bi bi-microsoft text-info"></i> Microsoft</div>
+            <div class="d-flex align-items-center gap-2 text-white fs-4"><i class="bi bi-stripe text-primary"></i> Stripe</div>
+            <div class="d-flex align-items-center gap-2 text-white fs-4"><i class="bi bi-apple text-light"></i> Apple</div>
+        </div>
+    </div>
+</section>
 
-                    <!-- Programs Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-secondary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Programs</a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/internships/"><i class="bi bi-rocket-takeoff me-2 text-primary"></i> Internship Programs</a></li>
-                            <li><a class="dropdown-item" href="/training/"><i class="bi bi-journal-code me-2 text-accent"></i> Training Programs</a></li>
-                            <li><a class="dropdown-item" href="/technologies/"><i class="bi bi-cpu me-2 text-primary"></i> Technologies</a></li>
-                        </ul>
+<!-- Company Statistics -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-md-3 col-6">
+                <div class="glass-panel p-4 h-100">
+                    <h2 class="display-5 text-white fw-bold">98%</h2>
+                    <p class="text-muted mb-0">Placement Success Rate</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="glass-panel p-4 h-100">
+                    <h2 class="display-5 text-white fw-bold">1,200+</h2>
+                    <p class="text-muted mb-0">Interns Mentored</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="glass-panel p-4 h-100">
+                    <h2 class="display-5 text-white fw-bold">25+</h2>
+                    <p class="text-muted mb-0">Industry Partnerships</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="glass-panel p-4 h-100">
+                    <h2 class="display-5 text-white fw-bold">150+</h2>
+                    <p class="text-muted mb-0">Active Live Projects</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5 bg-secondary-bg">
+    <div class="container text-center">
+        <div class="mb-5">
+            <h2 class="display-5 text-white fw-bold fade-in-up">How It <span class="gradient-text">Works</span></h2>
+            <p class="text-secondary fade-in-up" style="animation-delay: 0.1s;">Your journey from application to landing your dream job.</p>
+        </div>
+        <div class="row g-4 text-start position-relative">
+            <!-- connecting line for desktop -->
+            <div class="d-none d-lg-block position-absolute" style="top: 25px; left: 10%; right: 10%; height: 2px; background: var(--card-border); z-index: 0;"></div>
+            
+            <div class="col-lg-3 col-md-6 z-1">
+                <div class="glass-panel p-4 h-100 text-center">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px; font-size: 1.5rem; border: 4px solid var(--bg-secondary);">1</div>
+                    <h5 class="text-white">Apply & Onboard</h5>
+                    <p class="text-secondary small mb-0">Select a track and submit your application. Get instant portal access upon approval.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 z-1">
+                <div class="glass-panel p-4 h-100 text-center">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px; font-size: 1.5rem; border: 4px solid var(--bg-secondary);">2</div>
+                    <h5 class="text-white">Master Concepts</h5>
+                    <p class="text-secondary small mb-0">Learn from top industry mentors through curated roadmaps and guided training modules.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 z-1">
+                <div class="glass-panel p-4 h-100 text-center">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px; font-size: 1.5rem; border: 4px solid var(--bg-secondary);">3</div>
+                    <h5 class="text-white">Build Live Projects</h5>
+                    <p class="text-secondary small mb-0">Gain real-world experience building, testing, and deploying robust applications.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 z-1">
+                <div class="glass-panel p-4 h-100 text-center">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px; font-size: 1.5rem; border: 4px solid var(--bg-secondary);">4</div>
+                    <h5 class="text-white">Career Placement</h5>
+                    <p class="text-secondary small mb-0">Mock interviews, resume building, and direct referrals to our hiring network.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose BlueNova Technologies -->
+<section id="why-choose" class="py-5">
+    <div class="container text-center">
+        <div class="mb-5">
+            <h2 class="display-5 text-white fw-bold">Why Choose <span class="gradient-text">BlueNova</span></h2>
+            <p class="text-secondary">We bridge the gap between academic theory and enterprise environments.</p>
+        </div>
+        <div class="row g-4 text-start">
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-panel glass-panel-hover p-4 h-100">
+                    <i class="bi bi-laptop text-primary fs-2 mb-3"></i>
+                    <h4 class="text-white">Real Projects</h4>
+                    <p class="text-secondary mb-0">Gain coding, testing, and production deployment experiences working on actual company client tools.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-panel glass-panel-hover p-4 h-100">
+                    <i class="bi bi-people-fill text-accent fs-2 mb-3"></i>
+                    <h4 class="text-white">Industry Mentors</h4>
+                    <p class="text-secondary mb-0">Collaborate one-on-one with senior developers and architects who guide your design choices.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-12">
+                <div class="glass-panel glass-panel-hover p-4 h-100">
+                    <i class="bi bi-award-fill text-success fs-2 mb-3"></i>
+                    <h4 class="text-white">Professional Certificates</h4>
+                    <p class="text-secondary mb-0">Earn verification diplomas and recommendation letters that bolster your job application profile.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Benefits Section -->
+<section class="py-5 bg-secondary-bg">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <h2 class="display-5 text-white fw-bold mb-4">Program <span class="gradient-text">Benefits</span></h2>
+                <ul class="list-unstyled d-flex flex-column gap-3 text-secondary">
+                    <li class="d-flex align-items-start gap-3">
+                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                        <div>
+                            <strong class="text-white d-block">Career Coaching & Resume Auditing</strong>
+                            Professional HR consultants tweak your resume structure to stand out in screening pipelines.
+                        </div>
                     </li>
-
-                    <li class="nav-item"><a class="nav-link text-secondary" href="/services/">Services</a></li>
-                    <li class="nav-item"><a class="nav-link text-secondary" href="/pricing/">Pricing</a></li>
-
-                    <!-- Company Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-secondary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Company</a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/about/"><i class="bi bi-info-circle me-2 text-primary"></i> About Us</a></li>
-                            <li><a class="dropdown-item" href="/team/"><i class="bi bi-people me-2 text-primary"></i> Our Team</a></li>
-                            <li><a class="dropdown-item" href="/placements/"><i class="bi bi-briefcase me-2 text-accent"></i> Placements</a></li>
-                            <li><a class="dropdown-item" href="/success-stories/"><i class="bi bi-trophy me-2 text-warning"></i> Success Stories</a></li>
-                            <li><a class="dropdown-item" href="/testimonials/"><i class="bi bi-chat-heart me-2 text-primary"></i> Testimonials</a></li>
-                            <li><a class="dropdown-item" href="/careers/"><i class="bi bi-person-workspace me-2 text-accent"></i> Careers</a></li>
-                        </ul>
+                    <li class="d-flex align-items-start gap-3">
+                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                        <div>
+                            <strong class="text-white d-block">Mock Interview Sessions</strong>
+                            Standardized system designs and behavioral interview preparation before the job hunt begins.
+                        </div>
                     </li>
-
-                    <!-- Resources Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-secondary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Resources</a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/portfolio/"><i class="bi bi-folder-check me-2 text-primary"></i> Portfolio</a></li>
-                            <li><a class="dropdown-item" href="/gallery/"><i class="bi bi-images me-2 text-warning"></i> Gallery</a></li>
-                            <li><a class="dropdown-item" href="/events/"><i class="bi bi-calendar-event me-2 text-accent"></i> Events</a></li>
-                            <li><a class="dropdown-item" href="/blog/"><i class="bi bi-newspaper me-2 text-primary"></i> Blog</a></li>
-                            <li><a class="dropdown-item" href="/faq/"><i class="bi bi-question-circle me-2 text-primary"></i> FAQ</a></li>
-                        </ul>
+                    <li class="d-flex align-items-start gap-3">
+                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                        <div>
+                            <strong class="text-white d-block">Flexible Working Hours</strong>
+                            Completely hybrid programs allowing you to schedule coding hours alongside your university curriculum.
+                        </div>
                     </li>
-
-                    <li class="nav-item"><a class="nav-link text-secondary" href="/certificates/">Verification</a></li>
-                    <li class="nav-item"><a class="nav-link text-secondary" href="/contact/">Contact</a></li>
                 </ul>
-
-                <div class="d-flex align-items-center gap-3">
-                    <button class="theme-switch theme-toggle-btn" aria-label="Toggle Theme"></button>
-                    {% if request.user.is_authenticated %}
-                        <a href="/erp/dashboard/" class="btn btn-premium btn-sm py-2 px-3">Go to ERP</a>
-                    {% else %}
-                        <a href="/auth/login/" class="btn btn-secondary-premium btn-sm py-2 px-3">Login</a>
-                        <a href="/auth/signup/" class="btn btn-premium btn-sm py-2 px-3">Apply Now</a>
-                    {% endif %}
+            </div>
+            <div class="col-lg-6">
+                <div class="glass-panel p-4 text-center">
+                    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=600&q=80" class="img-fluid rounded-3 animated-pic" alt="Office Collaboration">
                 </div>
             </div>
         </div>
-    </nav>
+    </div>
+</section>
 
-
-    <!-- Hero Section -->
-    <header class="hero-section container text-center">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <span class="badge bg-primary-gradient px-3 py-2 rounded-pill mb-4 fade-in-up">⚡ 2026 COHORT REGISTRATIONS ACTIVE</span>
-                <h1 class="display-3 text-white fw-bold mb-4 fade-in-up" style="animation-delay: 0.1s;">
-                    Launch Your Career with <br><span class="gradient-text">BlueNova Technologies</span>
-                </h1>
-                <p class="lead text-secondary mb-5 fade-in-up mx-auto col-md-8" style="animation-delay: 0.2s;">
-                    Secure hands-on industry internship experience, professional certificates, live projects mentorship, and complete career placement assistance.
-                </p>
-                <div class="d-flex justify-content-center gap-3 fade-in-up" style="animation-delay: 0.3s;">
-                    <a href="/auth/signup/" class="btn btn-premium btn-lg">Apply for Internship</a>
-                    <a href="#programs" class="btn btn-secondary-premium btn-lg">Explore Tracks</a>
+<!-- Programs Tracks List -->
+<section id="programs" class="py-5">
+    <div class="container text-center">
+        <div class="mb-5">
+            <h2 class="display-5 text-white fw-bold">Internship <span class="gradient-text">Tracks</span></h2>
+            <p class="text-secondary">Choose the specialization pathway matching your career goal.</p>
+        </div>
+        <div class="row g-4 text-start">
+            <div class="col-md-4">
+                <div class="glass-panel glass-panel-hover p-4 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="badge bg-primary mb-3">Software Engineering</div>
+                        <h4 class="text-white">Full Stack Django & React</h4>
+                        <p class="text-secondary">Master Python backend, Restful APIs, Javascript frontends, SQLite/PostgreSQL optimization, and secure deployments.</p>
+                    </div>
+                    <a href="{% url 'apply' %}" class="btn btn-outline-light w-100 mt-4">Apply Track</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-panel glass-panel-hover p-4 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="badge bg-accent mb-3">UI/UX Design</div>
+                        <h4 class="text-white">Product Layout & Prototyping</h4>
+                        <p class="text-secondary">Construct design languages, wireframe complex screens, test user interactions, and build high fidelity responsive models in Figma.</p>
+                    </div>
+                    <a href="{% url 'apply' %}" class="btn btn-outline-light w-100 mt-4">Apply Track</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-panel glass-panel-hover p-4 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="badge bg-success mb-3">Data Analytics</div>
+                        <h4 class="text-white">Business Intelligence & Science</h4>
+                        <p class="text-secondary">Analyze business data flows using Python, Pandas, visualization tools like ChartJS/Tableau, and format custom analytics indices.</p>
+                    </div>
+                    <a href="{% url 'apply' %}" class="btn btn-outline-light w-100 mt-4">Apply Track</a>
                 </div>
             </div>
         </div>
-    </header>
+    </div>
+</section>
 
-    <!-- Company Statistics -->
-    <section class="py-5 bg-secondary-bg">
-        <div class="container">
-            <div class="row g-4 text-center">
-                <div class="col-md-3 col-6">
-                    <div class="glass-panel p-4">
-                        <h2 class="display-5 text-white fw-bold">98%</h2>
-                        <p class="text-muted mb-0">Placement Success Rate</p>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="glass-panel p-4">
-                        <h2 class="display-5 text-white fw-bold">1,200+</h2>
-                        <p class="text-muted mb-0">Interns Mentored</p>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="glass-panel p-4">
-                        <h2 class="display-5 text-white fw-bold">25+</h2>
-                        <p class="text-muted mb-0">Industry Partnerships</p>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="glass-panel p-4">
-                        <h2 class="display-5 text-white fw-bold">150+</h2>
-                        <p class="text-muted mb-0">Active Live Projects</p>
-                    </div>
-                </div>
-            </div>
+<!-- Testimonials -->
+<section class="py-5 bg-secondary-bg">
+    <div class="container text-center">
+        <div class="mb-5">
+            <h2 class="display-5 text-white fw-bold">From Our <span class="gradient-text">Alumni</span></h2>
+            <p class="text-secondary">See where our former interns are now working.</p>
         </div>
-    </section>
-
-    <!-- Why Choose BlueNova Technologies -->
-    <section id="why-choose" class="py-5 mt-5">
-        <div class="container text-center">
-            <div class="mb-5">
-                <h2 class="display-5 text-white fw-bold">Why Choose <span class="gradient-text">BlueNova</span></h2>
-                <p class="text-secondary">We bridge the gap between academic theory and enterprise environments.</p>
-            </div>
-            <div class="row g-4 text-start">
-                <div class="col-lg-4 col-md-6">
-                    <div class="glass-panel glass-panel-hover p-4 h-100">
-                        <i class="bi bi-laptop text-primary fs-2 mb-3"></i>
-                        <h4 class="text-white">Real Projects</h4>
-                        <p class="text-secondary mb-0">Gain coding, testing, and production deployment experiences working on actual company client tools.</p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="glass-panel glass-panel-hover p-4 h-100">
-                        <i class="bi bi-people-fill text-accent fs-2 mb-3"></i>
-                        <h4 class="text-white">Industry Mentors</h4>
-                        <p class="text-secondary mb-0">Collaborate one-on-one with senior developers and architects who guide your design choices.</p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-12">
-                    <div class="glass-panel glass-panel-hover p-4 h-100">
-                        <i class="bi bi-award-fill text-success fs-2 mb-3"></i>
-                        <h4 class="text-white">Professional Certificates</h4>
-                        <p class="text-secondary mb-0">Earn verification diplomas and recommendation letters that bolster your job application profile.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Benefits Section -->
-    <section class="py-5 bg-secondary-bg">
-        <div class="container">
-            <div class="row align-items-center g-5">
-                <div class="col-lg-6">
-                    <h2 class="display-5 text-white fw-bold mb-4">Program <span class="gradient-text">Benefits</span></h2>
-                    <ul class="list-unstyled d-flex flex-column gap-3 text-secondary">
-                        <li class="d-flex align-items-start gap-3">
-                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
-                            <div>
-                                <strong class="text-white d-block">Career Coaching & Resume Auditing</strong>
-                                Professional HR consultants tweak your resume structure to stand out in screening pipelines.
-                            </div>
-                        </li>
-                        <li class="d-flex align-items-start gap-3">
-                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
-                            <div>
-                                <strong class="text-white d-block">Mock Interview Sessions</strong>
-                                Standardized system designs and behavioral interview preparation before the job hunt begins.
-                            </div>
-                        </li>
-                        <li class="d-flex align-items-start gap-3">
-                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
-                            <div>
-                                <strong class="text-white d-block">Flexible Working Hours</strong>
-                                Completely hybrid programs allowing you to schedule coding hours alongside your university curriculum.
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-                <div class="col-lg-6">
-                    <div class="glass-panel p-4 text-center">
-                        <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=600&q=80" class="img-fluid rounded-3" alt="Office Collaboration">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Programs Tracks List -->
-    <section id="programs" class="py-5">
-        <div class="container text-center">
-            <div class="mb-5">
-                <h2 class="display-5 text-white fw-bold">Internship <span class="gradient-text">Tracks</span></h2>
-                <p class="text-secondary">Choose the specialization pathway matching your career goal.</p>
-            </div>
-            <div class="row g-4 text-start">
-                <div class="col-md-4">
-                    <div class="glass-panel glass-panel-hover p-4 h-100 d-flex flex-column justify-content-between">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="glass-panel p-4 h-100 d-flex flex-column justify-content-between text-start">
+                    <p class="text-secondary">"The projects were real, and the feedback from the senior developers was incredibly helpful. I went from knowing basic syntax to designing databases in less than 3 months."</p>
+                    <div class="d-flex align-items-center gap-3 mt-4">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=50&q=80" class="rounded-circle animated-pic" alt="">
                         <div>
-                            <div class="badge bg-primary mb-3">Software Engineering</div>
-                            <h4 class="text-white">Full Stack Django & React</h4>
-                            <p class="text-secondary">Master Python backend, Restful APIs, Javascript frontends, SQLite/PostgreSQL optimization, and secure deployments.</p>
+                            <h6 class="text-white mb-0">David Lee</h6>
+                            <small class="text-muted">Software Engineer, Vercel</small>
                         </div>
-                        <a href="/auth/signup/" class="btn btn-outline-light w-100 mt-4">Apply Track</a>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="glass-panel glass-panel-hover p-4 h-100 d-flex flex-column justify-content-between">
+            </div>
+            <div class="col-md-4">
+                <div class="glass-panel p-4 h-100 d-flex flex-column justify-content-between text-start">
+                    <p class="text-secondary">"I loved the collaborative culture. Working side by side with engineering mentors gave me the design intuition and confidence to pitch complex UI changes at Stripe."</p>
+                    <div class="d-flex align-items-center gap-3 mt-4">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=50&q=80" class="rounded-circle animated-pic" alt="">
                         <div>
-                            <div class="badge bg-accent mb-3">UI/UX Design</div>
-                            <h4 class="text-white">Product Layout & Prototyping</h4>
-                            <p class="text-secondary">Construct design languages, wireframe complex screens, test user interactions, and build high fidelity responsive models in Figma.</p>
+                            <h6 class="text-white mb-0">Sarah Jenkins</h6>
+                            <small class="text-muted">Lead Designer, Stripe</small>
                         </div>
-                        <a href="/auth/signup/" class="btn btn-outline-light w-100 mt-4">Apply Track</a>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="glass-panel glass-panel-hover p-4 h-100 d-flex flex-column justify-content-between">
+            </div>
+            <div class="col-md-4">
+                <div class="glass-panel p-4 h-100 d-flex flex-column justify-content-between text-start">
+                    <p class="text-secondary">"The placement support at BlueNova is unmatched. The mock interviews prepped me for rigorous tech rounds, leading directly to a full-time offer."</p>
+                    <div class="d-flex align-items-center gap-3 mt-4">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=50&q=80" class="rounded-circle animated-pic" alt="">
                         <div>
-                            <div class="badge bg-success mb-3">Data Analytics</div>
-                            <h4 class="text-white">Business Intelligence & Science</h4>
-                            <p class="text-secondary">Analyze business data flows using Python, Pandas, visualization tools like ChartJS/Tableau, and format custom analytics indices.</p>
-                        </div>
-                        <a href="/auth/signup/" class="btn btn-outline-light w-100 mt-4">Apply Track</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimonials -->
-    <section class="py-5 bg-secondary-bg">
-        <div class="container text-center">
-            <div class="mb-5">
-                <h2 class="display-5 text-white fw-bold">From Our <span class="gradient-text">Alumni</span></h2>
-                <p class="text-secondary">See where our former interns are now working.</p>
-            </div>
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="glass-panel p-4 h-100 d-flex flex-column justify-content-between text-start">
-                        <p class="text-secondary">"The projects were real, and the feedback from the senior developers was incredibly helpful. I went from knowing basic syntax to designing databases in less than 3 months."</p>
-                        <div class="d-flex align-items-center gap-3 mt-4">
-                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=50&q=80" class="rounded-circle" alt="">
-                            <div>
-                                <h6 class="text-white mb-0">David Lee</h6>
-                                <small class="text-muted">Software Engineer, Vercel</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="glass-panel p-4 h-100 d-flex flex-column justify-content-between text-start">
-                        <p class="text-secondary">"I loved the collaborative culture. Working side by side with engineering mentors gave me the design intuition and confidence to pitch complex UI changes at Stripe."</p>
-                        <div class="d-flex align-items-center gap-3 mt-4">
-                            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=50&q=80" class="rounded-circle" alt="">
-                            <div>
-                                <h6 class="text-white mb-0">Sarah Jenkins</h6>
-                                <small class="text-muted">Lead Designer, Stripe</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="glass-panel p-4 h-100 d-flex flex-column justify-content-between text-start">
-                        <p class="text-secondary">"The placement support at BlueNova is unmatched. The mock interviews prepped me for rigorous tech rounds, leading directly to a full-time offer."</p>
-                        <div class="d-flex align-items-center gap-3 mt-4">
-                            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=50&q=80" class="rounded-circle" alt="">
-                            <div>
-                                <h6 class="text-white mb-0">Marcus Chen</h6>
-                                <small class="text-muted">Data Scientist, Google</small>
-                            </div>
+                            <h6 class="text-white mb-0">Marcus Chen</h6>
+                            <small class="text-muted">Data Scientist, Google</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- FAQ Section -->
-    <section class="py-5">
-        <div class="container text-center col-lg-8">
-            <div class="mb-5">
-                <h2 class="display-5 text-white fw-bold">Frequently Asked <span class="gradient-text">Questions</span></h2>
-                <p class="text-secondary">Have any questions? Find quick replies here.</p>
+<!-- FAQ Section -->
+<section class="py-5">
+    <div class="container text-center col-lg-8">
+        <div class="mb-5">
+            <h2 class="display-5 text-white fw-bold">Frequently Asked <span class="gradient-text">Questions</span></h2>
+            <p class="text-secondary">Have any questions? Find quick replies here.</p>
+        </div>
+        <div class="accordion accordion-flush text-start" id="faqAccordion">
+            <div class="accordion-item glass-panel mb-3 p-2 bg-transparent text-white border-0">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed bg-transparent text-white border-0 py-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                        Is this internship program remote?
+                    </button>
+                </h2>
+                <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body text-secondary">
+                        Yes! Our internship programs support fully remote and hybrid setups, letting you attend onboarding seminars and build tasks remotely.
+                    </div>
+                </div>
             </div>
-            <div class="accordion accordion-flush text-start" id="faqAccordion">
-                <div class="accordion-item glass-panel mb-3 p-2 bg-transparent text-white border-0">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed bg-transparent text-white border-0 py-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                            Is this internship program remote?
-                        </button>
-                    </h2>
-                    <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                        <div class="accordion-body text-secondary">
-                            Yes! Our internship programs support fully remote and hybrid setups, letting you attend onboarding seminars and build tasks remotely.
-                        </div>
+            <div class="accordion-item glass-panel mb-3 p-2 bg-transparent text-white border-0">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed bg-transparent text-white border-0 py-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                        What is the duration of the internship cohort?
+                    </button>
+                </h2>
+                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body text-secondary">
+                        The standard cohort program runs for 12 weeks, containing weekly tasks, project milestones, progress tracking, and professional reviews.
                     </div>
                 </div>
-                <div class="accordion-item glass-panel mb-3 p-2 bg-transparent text-white border-0">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed bg-transparent text-white border-0 py-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                            What is the duration of the internship cohort?
-                        </button>
-                    </h2>
-                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                        <div class="accordion-body text-secondary">
-                            The standard cohort program runs for 12 weeks, containing weekly tasks, project milestones, progress tracking, and professional reviews.
-                        </div>
-                    </div>
-                </div>
-                <div class="accordion-item glass-panel mb-3 p-2 bg-transparent text-white border-0">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed bg-transparent text-white border-0 py-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
-                            Do I get a certificate upon completion?
-                        </button>
-                    </h2>
-                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                        <div class="accordion-body text-secondary">
-                            Absolutely. After successfully finishing all tasks and reviewing projects with code mentors, you will receive a verifiable company completion certificate.
-                        </div>
+            </div>
+            <div class="accordion-item glass-panel mb-3 p-2 bg-transparent text-white border-0">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed bg-transparent text-white border-0 py-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                        Do I get a certificate upon completion?
+                    </button>
+                </h2>
+                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body text-secondary">
+                        Absolutely. After successfully finishing all tasks and reviewing projects with code mentors, you will receive a verifiable company completion certificate.
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- Footer -->
-    <footer class="py-5 bg-secondary-bg border-top border-secondary-subtle mt-5">
-        <div class="container">
-            <div class="row g-4 justify-content-between">
-                <div class="col-md-4">
-                    <a class="d-flex align-items-center gap-2 fw-bold text-white fs-4 mb-3 text-decoration-none" href="/">
-                        <i class="bi bi-rocket-takeoff-fill text-primary"></i> BlueNova ERP
-                    </a>
-                    <p class="text-muted">Providing world-class technical mentorship and real-project experience to build the future software engineering and design workforce.</p>
-                </div>
-                <div class="col-md-2">
-                    <h5 class="text-white mb-3">Links</h5>
-                    <ul class="list-unstyled d-flex flex-column gap-2 small">
-                        <li><a href="/about/" class="text-secondary text-decoration-none">About Us</a></li>
-                        <li><a href="/contact/" class="text-secondary text-decoration-none">Contact Us</a></li>
-                        <li><a href="/auth/login/" class="text-secondary text-decoration-none">Log In</a></li>
-                        <li><a href="/auth/signup/" class="text-secondary text-decoration-none">Sign Up</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-3">
-                    <h5 class="text-white mb-3">Office Contacts</h5>
-                    <p class="text-secondary small mb-2"><i class="bi bi-envelope-fill me-2"></i> contact@bluenova.com</p>
-                    <p class="text-secondary small"><i class="bi bi-telephone-fill me-2"></i> +1 (555) 019-2000</p>
-                </div>
-            </div>
-            <hr class="my-4 border-secondary opacity-25">
-            <div class="row align-items-center justify-content-between small">
-                <div class="col-md-6 text-muted">&copy; 2026 BlueNova Technologies. All Rights Reserved.</div>
-                <div class="col-md-6 text-end">
-                    <a href="#" class="text-secondary text-decoration-none me-3">Privacy Policy</a>
-                    <a href="#" class="text-secondary text-decoration-none">Terms of Service</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/static/js/mockData.js"></script>
-    <script src="/static/js/app.js?v={% now "U" %}"></script>
-</body>
-</html>
+{% endblock %}
