@@ -1,15 +1,18 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file (sits next to manage.py)
+load_dotenv(BASE_DIR / '.env')
+
 # ─────────────────────────────────────────────────────────────────────────────
-# SECURITY — Change SECRET_KEY before deploying to production!
-# Generate a fresh one with: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+# SECURITY — All secrets are loaded from .env (never hardcode these!)
 # ─────────────────────────────────────────────────────────────────────────────
-SECRET_KEY = 'django-insecure-%c^$m51s+51w853-i4558e*d0d*#y@0@l7u-x!*y(6*5_a+b(8'
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+SECRET_KEY = os.environ.get('SECRET_KEY')
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
 
 # Application definition
 INSTALLED_APPS = [

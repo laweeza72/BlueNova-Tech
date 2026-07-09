@@ -35,55 +35,7 @@
 
     <div class="app-wrapper">
         <!-- Sidebar Navigation -->
-        <aside class="app-sidebar">
-            <div class="sidebar-header">
-                <a href="/" class="d-flex align-items-center gap-2 fw-bold text-white text-decoration-none">
-                    <i class="bi bi-rocket-takeoff-fill text-primary"></i> <span>BlueNova ERP</span>
-                </a>
-                <button class="sidebar-toggler sidebar-toggle-btn d-lg-none"><i class="bi bi-x-lg"></i></button>
-            </div>
-            <ul class="sidebar-menu">
-                <li class="sidebar-item">
-                    <a href="/erp/admin-dashboard/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Control Center</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/erp/user-management/" class="sidebar-link"><i class="bi bi-people-fill"></i> <span>Candidate Management</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/erp/user-management/?filter=approved" class="sidebar-link"><i class="bi bi-check-circle-fill text-success"></i> <span>Approved Candidates</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/erp/user-management/?filter=rejected" class="sidebar-link"><i class="bi bi-x-circle-fill text-danger"></i> <span>Rejected Candidates</span></a>
-                </li>
-                <li class="sidebar-item active">
-                    <a href="/erp/attendance/dashboard/" class="sidebar-link"><i class="bi bi-calendar-check-fill"></i> <span>Attendance</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/erp/messages/" class="sidebar-link"><i class="bi bi-chat-left-text-fill"></i> <span>Messages</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/erp/notifications/" class="sidebar-link"><i class="bi bi-bell-fill"></i> <span>Notifications <span class="badge bg-danger notif-badge ms-1" style="display:none;">0</span></span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/erp/reports/" class="sidebar-link"><i class="bi bi-file-earmark-bar-graph-fill"></i> <span>Reports</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/erp/analytics/" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> <span>Analytics</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/erp/activity-logs/" class="sidebar-link"><i class="bi bi-journal-text"></i> <span>System Logs</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/erp/data-management/" class="sidebar-link"><i class="bi bi-hdd-network-fill"></i> <span>Data Control</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'settings' %}" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a>
-                </li>
-                <li class="sidebar-item mt-4">
-                    <a href="/auth/logout/" class="sidebar-link text-danger"><i class="bi bi-box-arrow-right"></i> <span>Sign Out</span></a>
-                </li>
-            </ul>
-        </aside>
+        {% include "includes/sidebar.html" with active_tab="attendance-dashboard" %}
 
         <!-- Main Panel -->
         <main class="app-content">
@@ -158,7 +110,11 @@
                         <div class="glass-panel p-4 h-100">
                             <h4 class="text-white mb-3">Today's Status Distribution</h4>
                             <div style="height: 260px; position: relative;">
-                                <canvas id="attendancePieChart"></canvas>
+                                <canvas id="attendancePieChart"
+                                        data-present="{{ present_today|default:0 }}"
+                                        data-absent="{{ absent_today|default:0 }}"
+                                        data-late="{{ late_today|default:0 }}"
+                                        data-leave="{{ leave_today|default:0 }}"></canvas>
                             </div>
                         </div>
                     </div>
@@ -183,7 +139,7 @@
                                     <span class="badge-status status-approved">{{ stat.present }}/{{ stat.total }}</span>
                                 </div>
                                 <div class="progress" style="height:6px; background: var(--card-border); border-radius:3px;">
-                                    <div class="progress-bar" style="width: {% if stat.total > 0 %}{% widthratio stat.present stat.total 100 %}{% else %}0{% endif %}%; background: var(--success); border-radius:3px;" role="progressbar"></div>
+                                    <div class="progress-bar" data-width="{% if stat.total > 0 %}{% widthratio stat.present stat.total 100 %}{% else %}0{% endif %}" style="width: 0%; background: var(--success); border-radius:3px;" role="progressbar"></div>
                                 </div>
                             </div>
                         </div>
@@ -197,16 +153,32 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/js/mockData.js"></script>
-    <script src="/static/js/app.js?v={% now "U" %}"></script>
+    <script id="weekly-labels" type="application/json">{{ weekly_labels|safe }}</script>
+    <script id="weekly-present" type="application/json">{{ weekly_present|safe }}</script>
+    <script id="weekly-absent" type="application/json">{{ weekly_absent|safe }}</script>
+    <script src="/static/js/app.js?v={% now 'U' %}"></script>
     <script>
+        // Set progress bar widths from dataset
+        document.querySelectorAll('.progress-bar').forEach(bar => {
+            if (bar.dataset.width) {
+                bar.style.width = bar.dataset.width + '%';
+            }
+        });
+
         // Pie Chart — Today's Status
-        const pieCtx = document.getElementById('attendancePieChart').getContext('2d');
+        const pieCanvas = document.getElementById('attendancePieChart');
+        const pieCtx = pieCanvas.getContext('2d');
+        const presentToday = parseInt(pieCanvas.dataset.present || 0);
+        const absentToday = parseInt(pieCanvas.dataset.absent || 0);
+        const lateToday = parseInt(pieCanvas.dataset.late || 0);
+        const leaveToday = parseInt(pieCanvas.dataset.leave || 0);
+
         new Chart(pieCtx, {
             type: 'doughnut',
             data: {
                 labels: ['Present', 'Absent', 'Late', 'Leave'],
                 datasets: [{
-                    data: [{{ present_today }}, {{ absent_today }}, {{ late_today }}, {{ leave_today }}],
+                    data: [presentToday, absentToday, lateToday, leaveToday],
                     backgroundColor: ['#00e676', '#f43f5e', '#f59e0b', '#0ea5e9'],
                     borderWidth: 0,
                     hoverOffset: 8
@@ -224,21 +196,25 @@
 
         // Weekly Trend Bar Chart
         const weeklyCtx = document.getElementById('attendanceWeeklyChart').getContext('2d');
+        const weeklyLabels = JSON.parse(document.getElementById('weekly-labels').textContent || '[]');
+        const weeklyPresent = JSON.parse(document.getElementById('weekly-present').textContent || '[]');
+        const weeklyAbsent = JSON.parse(document.getElementById('weekly-absent').textContent || '[]');
+
         new Chart(weeklyCtx, {
             type: 'bar',
             data: {
-                labels: {{ weekly_labels|safe }},
+                labels: weeklyLabels,
                 datasets: [
                     {
                         label: 'Present / Late',
-                        data: {{ weekly_present|safe }},
+                        data: weeklyPresent,
                         backgroundColor: 'rgba(0, 230, 118, 0.6)',
                         borderRadius: 6,
                         borderSkipped: false
                     },
                     {
                         label: 'Absent / Leave',
-                        data: {{ weekly_absent|safe }},
+                        data: weeklyAbsent,
                         backgroundColor: 'rgba(244, 63, 94, 0.6)',
                         borderRadius: 6,
                         borderSkipped: false

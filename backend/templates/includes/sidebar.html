@@ -20,7 +20,7 @@
             <li class="sidebar-item {% if active_tab == 'user-rejected' %}active{% endif %}">
                 <a href="/erp/user-management/?filter=rejected" class="sidebar-link"><i class="bi bi-x-circle-fill text-danger"></i> <span>Rejected Candidates</span></a>
             </li>
-            <li class="sidebar-item {% if active_tab == 'attendance-dashboard' %}active{% endif %}">
+            <li class="sidebar-item {% if active_tab == 'attendance-dashboard' or active_tab == 'attendance' %}active{% endif %}">
                 <a href="/erp/attendance/dashboard/" class="sidebar-link"><i class="bi bi-calendar-check-fill"></i> <span>Attendance</span></a>
             </li>
             <li class="sidebar-item {% if active_tab == 'messages' %}active{% endif %}">
@@ -61,7 +61,7 @@
             <li class="sidebar-item {% if active_tab == 'assessments' %}active{% endif %}">
                 <a href="/erp/assessments/" class="sidebar-link"><i class="bi bi-journal-check"></i> <span>Assessments</span></a>
             </li>
-            <li class="sidebar-item {% if active_tab == 'attendance-report' %}active{% endif %}">
+            <li class="sidebar-item {% if active_tab == 'attendance-report' or active_tab == 'attendance' %}active{% endif %}">
                 <a href="/erp/reports/attendance/" class="sidebar-link"><i class="bi bi-calendar-check-fill"></i> <span>Attendance Report</span></a>
             </li>
             <li class="sidebar-item {% if active_tab == 'history' %}active{% endif %}">

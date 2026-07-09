@@ -34,17 +34,7 @@
 
     <div class="app-wrapper">
         <!-- Sidebar Navigation -->
-        <aside class="app-sidebar" id="search-sidebar-aside">
-            <div class="sidebar-header">
-                <a href="/" class="d-flex align-items-center gap-2 fw-bold text-white text-decoration-none">
-                    <i class="bi bi-rocket-takeoff-fill text-primary"></i> <span id="sidebar-logo-text">BlueNova ERP</span>
-                </a>
-                <button class="sidebar-toggler sidebar-toggle-btn d-lg-none"><i class="bi bi-x-lg"></i></button>
-            </div>
-            <ul class="sidebar-menu" id="search-sidebar-menu">
-                <!-- Populated dynamically -->
-            </ul>
-        </aside>
+        {% include "includes/sidebar.html" with active_tab="search" %}
 
         <!-- Main Panel Workspace -->
         <main class="app-content">
@@ -85,46 +75,7 @@
     <script src="/static/js/mockData.js"></script>
     <script src="/static/js/app.js?v={% now "U" %}"></script>
     <script>
-        const u = getLoggedInUser();
-        if (u) {
-            const menu = document.getElementById("search-sidebar-menu");
-            const logoText = document.getElementById("sidebar-logo-text");
-            const homeLink = document.querySelector("#search-sidebar-aside a");
-            
-            if (u.role === "admin") {
-                homeLink.href = "/";
-                menu.innerHTML = `
-                    <li class="sidebar-item"><a href="/erp/admin-dashboard/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Control Center</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/user-management/" class="sidebar-link"><i class="bi bi-people-fill"></i> <span>Candidate Management</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/user-management/?filter=approved" class="sidebar-link"><i class="bi bi-check-circle-fill text-success"></i> <span>Approved Candidates</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/user-management/?filter=rejected" class="sidebar-link"><i class="bi bi-x-circle-fill text-danger"></i> <span>Rejected Candidates</span></a></li>
-    
-                    <li class="sidebar-item"><a href="/erp/messages/" class="sidebar-link"><i class="bi bi-chat-left-text-fill"></i> <span>Messages</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/data-management/" class="sidebar-link"><i class="bi bi-hdd-network-fill"></i> <span>Data Control</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/activity-logs/" class="sidebar-link"><i class="bi bi-journal-text"></i> <span>Activity Logs</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/notifications/" class="sidebar-link"><i class="bi bi-bell-fill"></i> <span>Notifications</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/reports/" class="sidebar-link"><i class="bi bi-file-earmark-pdf-fill"></i> <span>Reports Desk</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/analytics/" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> <span>Analytics</span></a></li>
-                    <li class="sidebar-item mt-4"><a href="/auth/logout/" class="sidebar-link text-danger"><i class="bi bi-box-arrow-right"></i> <span>Sign Out</span></a></li>
-                `;
-            } else {
-                homeLink.href = "/";
-                menu.innerHTML = `
-                    <li class="sidebar-item"><a href="/erp/dashboard/" class="sidebar-link"><i class="bi bi-grid-fill"></i> <span>Dashboard</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/profile/" class="sidebar-link"><i class="bi bi-person-fill"></i> <span>My Profile</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/upload-files/" class="sidebar-link"><i class="bi bi-folder-fill"></i> <span>Files</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/resume/" class="sidebar-link"><i class="bi bi-file-earmark-person-fill"></i> <span>Resume Builder</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/messages/" class="sidebar-link"><i class="bi bi-chat-left-text-fill"></i> <span>Messages</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/reports/attendance/" class="sidebar-link"><i class="bi bi-calendar-check-fill"></i> <span>Attendance Report</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/history/" class="sidebar-link"><i class="bi bi-clock-history"></i> <span>History</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/reports/" class="sidebar-link"><i class="bi bi-file-earmark-bar-graph-fill"></i> <span>Reports Desk</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/help-center/" class="sidebar-link"><i class="bi bi-question-circle-fill"></i> <span>Help Center</span></a></li>
-                    <li class="sidebar-item"><a href="/erp/feedback/" class="sidebar-link"><i class="bi bi-star-fill"></i> <span>Feedback</span></a></li>
-                    <li class="sidebar-item"><a href="{% url 'settings' %}" class="sidebar-link"><i class="bi bi-gear-fill"></i> <span>Settings</span></a></li>
-                    <li class="sidebar-item mt-5"><a href="/auth/logout/" class="sidebar-link text-danger"><i class="bi bi-box-arrow-right"></i> <span>Sign Out</span></a></li>
-                `;
-            }
-        }
+        // Client-side sidebar overrides removed. Server-side include is used.
     </script>
 </body>
 </html>
